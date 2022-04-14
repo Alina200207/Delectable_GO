@@ -1,10 +1,11 @@
 import IIPlay
 from Board import Board
 from Point import Point
+from gui import MainWindow
 
 
 def main():
-    board = Board
+    board = Board()
     stone_type = Board.our
     pass_move = 0
     while True:
@@ -15,7 +16,7 @@ def main():
             else:
                 pass_move = 0
         if stone_type == Board.alien:
-            person_move = get_person_move()
+            person_move = MainWindow.get_person_move()
             if board.check(person_move, stone_type):
                 board.make_move(person_move, stone_type)
                 pass_move = 0
@@ -24,7 +25,8 @@ def main():
         if pass_move >= 2:
             count_points(board)
             break
-        stone_type = board.get_opposite_stone(board, stone_type)
+        stone_type = board.get_opposite_stone(stone_type)
+
 
 
 def count_points(board: Board):
