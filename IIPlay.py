@@ -25,3 +25,4 @@ def play_random_move(board: Board):
     board.make_move(move, Board.our)
     return board, move
 
+
