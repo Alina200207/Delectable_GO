@@ -15,34 +15,35 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: #F0C98D;")
         self.button = QPushButton("Pass!", self)
         self.button.setStyleSheet("background-color: #FFE7AB;")
-        self.button.move(800, 700)
+        self.desktop = QApplication.desktop()
+        self.height_desk = int(self.desktop.height() * 0.8)
+        self.width_desk = int(self.height_desk * 0.9)
+
+        self.setFixedSize(QSize(self.width_desk, self.height_desk))
         self.button.clicked.connect(self.open_dialog)
-        self.button.setGeometry(350, 700, 200, 50)
-        self.setFixedSize(QSize(900, 800))
+        self.button.setGeometry(int(self.width_desk * 0.4), int(self.height_desk * 0.9), int(self.width_desk * 0.2),
+                                int(self.height_desk * 0.05))
         self.game = Game()
+        self.otst = int(self.width_desk * 0.1)
+        self.size_sq = (self.width_desk - self.otst * 2) // 8
         self.coord = self.game.get_board()
-        self.coord.board[1][1] = Board.alien
-        self.x = -1
-        self.y = -1
+        self.coord.board[0][0] = Board.our
         self.click_pass = False
-        self.game = Game()
 
     def paintEvent(self, e):
         qp = QPainter()
         qp.begin(self)
-        draw_board(qp)
-        draw_stone(qp, self.coord)
+        self.draw_board(qp)
+        self.draw_stone(qp, self.coord)
         qp.end()
 
     def mousePressEvent(self, a0):
-        print(a0.x(), a0.y())
-        x = abs(round_cord(a0.x()-120)) // 80
-        y = abs(round_cord(a0.y()-40)) // 80
-        print(x, y)
-        self.coord = self.game.person_move(x, y)
+        print(round((a0.x() - self.otst) / self.size_sq), round((a0.y() - self.otst) / self.size_sq))
+        self.coord.board[round((a0.x() - self.otst) / self.size_sq)][
+            round((a0.y() - self.otst) / self.size_sq)] = Board.alien
         self.update()
 
-    def get_board(self):
+    def get_board(self, board):
         self.coord = self.game.get_board()
 
     def open_dialog(self):
@@ -53,53 +54,49 @@ class MainWindow(QMainWindow):
     def get_pass(self):
         return self.click_pass
 
+    def draw_board(self, qp):
+        pen = QPen(Qt.black, 3, Qt.SolidLine)
+        qp.setPen(pen)
+        for i in range(9):
+            qp.drawLine(self.otst, self.otst + self.size_sq * i, 9 * self.size_sq, self.otst + self.size_sq * i)
+            qp.drawLine(self.otst + self.size_sq * i, self.otst, self.otst + self.size_sq * i, 9 * self.size_sq)
 
-def draw_stone(qp, coord: Board):
-    for i in range(coord.size):
-        for j in range(coord.size):
-            if check_coord(80*i, 80*j):
-                if coord.board[i][j] == Board.alien:
-                    draw_white_stone(qp, 80*i, 80*j)
-                if coord.board[i][j] == Board.our:
-                    draw_black_stone(qp, 80*i, 80*j)
+    def draw_stone(self, qp, coord: Board):
+        for i in range(coord.size):
+            for j in range(coord.size):
+                if self.check_coord(self.size_sq * i + self.otst, self.size_sq * j + self.otst):
+                    if coord.board[i][j] == Board.alien:
+                        self.draw_white_stone(qp, self.size_sq * i + self.otst, self.size_sq * j + self.otst)
+                    if coord.board[i][j] == Board.our:
+                        self.draw_black_stone(qp, self.size_sq * i + self.otst, self.size_sq * j + self.otst)
 
-                # верхний левый угол коорд - x - 100, y - 20 разница по 80
-    # qt.drawEllipse(175+80*2, 95+80*2, 50, 50)
+            # верхний левый угол коорд - x - 100, y - 20 разница по 80
 
+    def round_cord(self, point):
+        return int(round(point // self.size_sq) * self.size_sq)
 
-def draw_white_stone(qp, x, y):
-    stone = QBrush(Qt.white, Qt.SolidPattern)
-    qp.setBrush(stone)
-    qp.drawEllipse(x, y, 50, 50)
+    def check_coord(self, x, y):
+        if x > 9 * self.size_sq:
+            return False
+        elif y > 9 * self.size_sq:
+            return False
+        elif x < self.otst:
+            return False
+        return True
 
+    def draw_white_stone(self, qp, x, y):
+        stone = QBrush(Qt.white, Qt.SolidPattern)
+        qp.setBrush(stone)
+        qp.drawEllipse(x - int(self.size_sq * 0.25), y - int(self.size_sq * 0.25), int(self.size_sq * 0.5),
+                       int(self.size_sq * 0.5))
 
-def draw_black_stone(qp, x, y):
-    stone = QBrush(Qt.black, Qt.SolidPattern)
-    qp.setBrush(stone)
-    qp.drawEllipse(x, y, 50, 50)
+    def draw_black_stone(self, qp, x, y):
+        stone = QBrush(Qt.black, Qt.SolidPattern)
+        qp.setBrush(stone)
+        qp.drawEllipse(x - int(self.size_sq * 0.25), y - int(self.size_sq * 0.25), int(self.size_sq * 0.5),
+                       int(self.size_sq * 0.5))
 
-
-def draw_board(qp):
-    pen = QPen(Qt.black, 3, Qt.SolidLine)
-    qp.setPen(pen)
-    dis = 80
-    for i in range(9):
-        qp.drawLine(120, 40 + dis * i, 760, 40 + dis * i)
-        qp.drawLine(120 + dis * i, 40, 120 + dis * i, 680)
-
-
-def round_cord(point):
-    return round(point // 80) * 80
-
-
-def check_coord(x, y):
-    if x > 760:
-        return False
-    elif y > 680:
-        return False
-    elif x < 95:
-        return False
-    return True
+# qt.drawEllipse(175+80*2, 95+80*2, 50, 50)
 
 
 class CustomDialog(QDialog):
