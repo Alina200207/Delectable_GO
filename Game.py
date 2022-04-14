@@ -6,28 +6,32 @@ from Point import Point
 class Game:
     def __init__(self):
         self.board = Board()
+        self.count_pass = 0
+
 
     def main(self):
         stone_type = Board.our
-        pass_move = 0
         while True:
             if stone_type == Board.our:
                 move = IIPlay.play_random_move(self.board)
                 if not move[1]:
-                    pass_move += 1
+                    self.count_pass += 1
                 else:
-                    pass_move = 0
+                    self.count_pass = 0
             if stone_type == Board.alien:
                 person_move = get_person_move()
                 if self.board.check(person_move, stone_type):
                     self.board.make_move(person_move, stone_type)
-                    pass_move = 0
+                    self.count_pass = 0
                 if is_passing:
-                    pass_move += 1
-            if pass_move >= 2:
+                    self.count_pass += 1
+            if self.count_pass >= 2:
                 self.count_points(self.board)
                 break
             stone_type = self.board.get_opposite_stone(stone_type)
+
+    def get_board(self):
+        return self.board
 
     def count_points(self, board: Board):
         comp_score = 0

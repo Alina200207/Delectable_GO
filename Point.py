@@ -1,4 +1,3 @@
-from Board import Board
 
 
 class Point:
