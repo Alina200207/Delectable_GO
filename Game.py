@@ -33,6 +33,11 @@ class Game:
     def get_board(self):
         return self.board
 
+    def person_move(self, x, y):
+        if self.board.check(Point(x, y), Board.alien):
+            self.board.make_move(Point(x, y), Board.alien)
+        return self.board
+
     def count_points(self, board: Board):
         comp_score = 0
         person_score = 0

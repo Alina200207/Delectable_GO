@@ -23,7 +23,7 @@ class MainWindow(QMainWindow):
         self.x = -1
         self.y = -1
         self.click_pass = False
-        self.game = Game
+        self.game = Game()
 
     def paintEvent(self, e):
         qp = QPainter()
@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
         self.y = round_cord(a0.y())
         self.update()
 
-    def get_board(self, board):
+    def get_board(self):
         self.coord = self.game.get_board()
 
     def open_dialog(self):
