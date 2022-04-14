@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QDia
     QVBoxLayout
 
 from Game import Game
-from Point import Point
+from Board import Board
 
 
 class MainWindow(QMainWindow):
@@ -19,11 +19,11 @@ class MainWindow(QMainWindow):
         self.button.clicked.connect(self.open_dialog)
         self.button.setGeometry(350, 700, 200, 50)
         self.setFixedSize(QSize(900, 800))
-        self.coord = []
+        self.game = Game()
+        self.coord = self.game.get_board()
         self.x = -1
         self.y = -1
         self.click_pass = False
-        self.game = Game
 
     def paintEvent(self, e):
         qp = QPainter()
@@ -33,6 +33,7 @@ class MainWindow(QMainWindow):
         qp.end()
 
     def mousePressEvent(self, a0):
+        self.coord.board[][] =
         self.x = round_cord(a0.x())
         self.y = round_cord(a0.y())
         self.update()
@@ -46,16 +47,22 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def get_person_move(self):
-        return Point(self.x, self.y)
+        return self.x, self.y
 
     def get_pass(self):
         return self.click_pass
 
-def draw_stone(qp, coord):
-    for i in coord:
-        if True:
-            if check_coord(i[0], i[1]):
-                draw_white_stone(qp, i[0], i[1])  # верхний левый угол коорд - x - 100, y - 20 разница по 80
+
+def draw_stone(qp, coord: Board):
+    for i in range(coord.size):
+        for j in range(coord.size):
+            if check_coord(80*i, 80*j):
+                if coord.board[i][j] == Board.alien:
+                    draw_white_stone(qp, 80*i, 80*j)
+                if coord.board[i][j] == Board.our:
+                    draw_black_stone(qp, 80*i, 80*j)
+
+                # верхний левый угол коорд - x - 100, y - 20 разница по 80
     # qt.drawEllipse(175+80*2, 95+80*2, 50, 50)
 
 
@@ -69,7 +76,6 @@ def draw_black_stone(qp, x, y):
     stone = QBrush(Qt.black, Qt.SolidPattern)
     qp.setBrush(stone)
     qp.drawEllipse(x, y, 50, 50)
-
 
 
 def draw_board(qp):
