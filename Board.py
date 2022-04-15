@@ -138,7 +138,7 @@ class Board:
             queue.append(point)
             while len(queue) > 0:
                 current = queue.pop()
-                if current.dame_exists():
+                if self.dame_exists(current):
                     return []
                 neighbours = self.get_close_neighbours(current)
                 visited.append(current)
