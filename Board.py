@@ -1,7 +1,4 @@
-from Point import Point
-
-
-def is_visited(visited, queue, point: Point):
+def is_visited(visited, queue, point: (int, int)):
     for elem in visited:
         if point.equals(elem):
             return True
@@ -25,53 +22,56 @@ class Board:
         self.last_point = None
         self.try_point = None
         self.board = [[self.empty for _ in range(0, 11)] for _ in range(0, 11)]
-        for k in range(0, 9):
+        for k in range(0, 10):
             self.board[0][k] = self.border
             self.board[k][0] = self.border
-            self.board[k][self.size] = self.border
-            self.board[self.size][k] = self.border
+            self.board[k][self.size + 1] = self.border
+            self.board[self.size + 1][k] = self.border
 
-    def dame_exists(self, point: Point):
-        neighbours = point.get_close_neighbours()
+    def dame_exists(self, point: (int, int)):
+        neighbours = self.get_close_neighbours(point)
         for neighbour in neighbours:
-            if neighbour.get_point_type() == Board.empty:
+            if self.get_point_type(neighbour) == Board.empty:
                 return True
         return False
 
-    def is_eye_point(self, point: Point):
-        neighbours = point.get_close_neighbours()
+    def is_eye_point(self, point: (int, int)):
+        neighbours = self.get_close_neighbours(point)
         for neighbour in neighbours:
-            if neighbour.get_point_type() == Board.empty or neighbour.get_point_type() == \
+            if self.get_point_type(neighbour) == Board.empty or self.get_point_type(neighbour) == \
                     self.get_opposite_stone(self.get_point_type(neighbour)):
                 return False
         return True
 
-    def is_real_eye(self, point: Point):
-        diag_neighbours = point.get_diagonal_neighbours()
+    def is_real_eye(self, point: (int, int)):
+        diag_neighbours = self.get_diagonal_neighbours(point)
         same_stones = 0
         another_stones = 0
         is_border = False
         for neighbor in diag_neighbours:
-            if neighbor.get_point_type() == Board.our:
+            if self.get_point_type(neighbor) == Board.our:
                 same_stones += 1
-            if neighbor.get_point_type() == Board.alien:
+            if self.get_point_type(neighbor) == Board.alien:
                 another_stones += 1
-            if neighbor.get_point_type() == Board.border:
+            if self.get_point_type(neighbor) == Board.border:
                 is_border = True
         if (another_stones == 0 and is_border) or (another_stones <= 1 and not is_border):
             return True
         return False
 
-    def get_point(self, point: Point):
-        return self.board[point.x][point.y]
+    def get_point(self, point: (int, int)):
+        return self.board[point[0]][point[1]]
 
-    def get_point_type(self, point: Point):
+    def get_point_type(self, point: (int, int)):
         return self.get_point(point)
 
-    def set_point(self, point: Point, pointType: int):
-        self.board[point.x][point.y] = pointType
+    def set_point(self, point: (int, int), pointType: int):
+        self.board[point[0]][point[1]] = pointType
+        for row in self.board:
+            print(row)
+        print(pointType)
         if pointType == self.alien or pointType == self.our:
-            self.last_point = Point(point.x, point.y)
+            self.last_point = (point[0], point[1])
             self.ko_time += 1
 
     def get_opposite_stone(self, stone_type: int):
@@ -80,7 +80,7 @@ class Board:
         else:
             return self.our
 
-    def try_move(self, point: Point, point_type: int):
+    def try_move(self, point: (int, int), point_type: int):
         self.try_point = point
         self.set_point(point, point_type)
 
@@ -88,15 +88,15 @@ class Board:
         self.set_point(self.try_point, self.empty)
         self.try_point = None
 
-    def set_last_point(self, point: Point):
+    def set_last_point(self, point: (int, int)):
         self.last_point = point
 
-    def set_ko(self, point: Point, point_type):
+    def set_ko(self, point: (int, int), point_type):
         self.ko_stone_type = point_type
         self.ko_point = point
         self.ko_time = 0
 
-    def is_ko_point(self, point: Point):
+    def is_ko_point(self, point: (int, int)):
         if self.ko_time == 0 and self.ko_point:
             if point.equals(self.ko_point) and self.get_point(self.ko_point) == self.get_point(point):
                 return True
@@ -105,22 +105,23 @@ class Board:
     def get_last_point(self):
         return self.last_point
 
-    def make_move(self, point: Point, point_type: int):
+    def make_move(self, point: (int, int), point_type: int):
         self.set_point(point, point_type)
         self.remove_dead_stones(point)
+        print(point_type)
 
-    def check(self, point: Point, point_type: int):
+    def check(self, point: (int, int), point_type: int):
         if self.get_point(point) != Board.empty:
             return False
         if self.dame_exists(point):
             return True
         if self.is_ko_point(point):
             return False
-        neighbours = point.get_close_neighbours()
+        neighbours = self.get_close_neighbours(point)
         self.try_move(point, point_type)
         if self.is_dead(point):
             for neighbour in neighbours:
-                if self.get_opposite_stone(point_type) != neighbour.get_point_type():
+                if self.get_opposite_stone(point_type) != self.get_point_type(neighbour):
                     if self.is_dead(neighbour):
                         self.undo_move()
                         return True
@@ -130,7 +131,7 @@ class Board:
         self.undo_move()
         return False
 
-    def is_dead(self, point: Point):
+    def is_dead(self, point: (int, int)):
         queue = []
         visited = []
         if self.get_point(point) == Board.our or self.get_point(point) == Board.alien:
@@ -139,7 +140,7 @@ class Board:
                 current = queue.pop()
                 if current.dame_exists():
                     return []
-                neighbours = current.get_close_neighbours()
+                neighbours = self.get_close_neighbours(current)
                 visited.append(current)
                 for neighbour in neighbours:
                     if self.get_point(current) == self.get_point(neighbour) and \
@@ -147,9 +148,9 @@ class Board:
                         queue.append(neighbour)
         return visited
 
-    def remove_dead_stones(self, last: Point):
+    def remove_dead_stones(self, last: (int, int)):
         stone_type = self.get_opposite_stone(self.get_point(last))
-        last_neighbours = last.get_close_neighbours()
+        last_neighbours = self.get_close_neighbours(last)
         all_deleted = 0
         is_eye = self.is_eye_point(last)
         for neighbour in last_neighbours:
@@ -164,8 +165,27 @@ class Board:
             return True
         return False
 
-    def delete_group_if_it_is_dead(self, point: Point):
+    def delete_group_if_it_is_dead(self, point: (int, int)):
         group = self.is_dead(point)
         for point_from_group in group:
             self.set_point(point_from_group, Board.empty)
         return len(group)
+
+    #def equals(self, other):
+    #    if type(other) != type(self):
+     #       return False
+      #  if self.x == other.x & self.y == other.y:
+       #     return True
+       # else:
+        #    return False
+
+    def get_close_neighbours(self, point: (int, int)):
+        return [(point[0] - 1, point[1]), (point[0], point[1] - 1), (point[0] + 1, point[1]),
+                (point[0], point[1] + 1)]
+
+    def get_diagonal_neighbours(self, point: (int, int)):
+        return [(point[0] - 1, point[1] - 1), (point[0] + 1, point[1] - 1), (point[0] + 1, point[1] + 1),
+                (point[0] - 1, point[1] + 1)]
+
+    def get_all_neighbours(self, point: (int, int)):
+        return self.get_close_neighbours(point).extend(self.get_diagonal_neighbours(point))
