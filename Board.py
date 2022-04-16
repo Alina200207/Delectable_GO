@@ -1,9 +1,9 @@
-def is_visited(visited, queue, point: (int, int)):
+def is_visited(visited: list[(int, int)], queue: list[(int, int)], point: (int, int)) -> bool:
     for elem in visited:
-        if point.equals(elem):
+        if point == elem:
             return True
     for elem_q in queue:
-        if point.equals(elem_q):
+        if point == elem_q:
             return True
     return False
 
@@ -28,14 +28,14 @@ class Board:
             self.board[k][self.size + 1] = self.border
             self.board[self.size + 1][k] = self.border
 
-    def dame_exists(self, point: (int, int)):
+    def dame_exists(self, point: (int, int)) -> bool:
         neighbours = self.get_close_neighbours(point)
         for neighbour in neighbours:
             if self.get_point_type(neighbour) == Board.empty:
                 return True
         return False
 
-    def is_eye_point(self, point: (int, int)):
+    def is_eye_point(self, point: (int, int)) -> bool:
         neighbours = self.get_close_neighbours(point)
         for neighbour in neighbours:
             if self.get_point_type(neighbour) == Board.empty or self.get_point_type(neighbour) == \
@@ -43,7 +43,7 @@ class Board:
                 return False
         return True
 
-    def is_real_eye(self, point: (int, int)):
+    def is_real_eye(self, point: (int, int)) -> bool:
         diag_neighbours = self.get_diagonal_neighbours(point)
         same_stones = 0
         another_stones = 0
@@ -59,7 +59,7 @@ class Board:
             return True
         return False
 
-    def get_point(self, point: (int, int)):
+    def get_point(self, point: (int, int)) -> int:
         return self.board[point[0]][point[1]]
 
     def get_point_type(self, point: (int, int)):
@@ -74,7 +74,7 @@ class Board:
             self.last_point = (point[0], point[1])
             self.ko_time += 1
 
-    def get_opposite_stone(self, stone_type: int):
+    def get_opposite_stone(self, stone_type: int) -> int:
         if stone_type == self.our:
             return self.alien
         else:
@@ -96,21 +96,20 @@ class Board:
         self.ko_point = point
         self.ko_time = 0
 
-    def is_ko_point(self, point: (int, int)):
+    def is_ko_point(self, point: (int, int)) -> bool:
         if self.ko_time == 0 and self.ko_point:
-            if point.equals(self.ko_point) and self.get_point(self.ko_point) == self.get_point(point):
+            if point == self.ko_point and self.get_point(self.ko_point) == self.get_point(point):
                 return True
         return False
 
-    def get_last_point(self):
+    def get_last_point(self) -> (int, int):
         return self.last_point
 
     def make_move(self, point: (int, int), point_type: int):
         self.set_point(point, point_type)
         self.remove_dead_stones(point)
-        print(point_type)
 
-    def check(self, point: (int, int), point_type: int):
+    def check(self, point: (int, int), point_type: int) -> bool:
         if self.get_point(point) != Board.empty:
             return False
         if self.dame_exists(point):
@@ -119,10 +118,10 @@ class Board:
             return False
         neighbours = self.get_close_neighbours(point)
         self.try_move(point, point_type)
-        if self.is_dead(point):
+        if self.dead_points(point):
             for neighbour in neighbours:
                 if self.get_opposite_stone(point_type) != self.get_point_type(neighbour):
-                    if self.is_dead(neighbour):
+                    if self.dead_points(neighbour):
                         self.undo_move()
                         return True
         else:
@@ -131,7 +130,7 @@ class Board:
         self.undo_move()
         return False
 
-    def is_dead(self, point: (int, int)):
+    def dead_points(self, point: (int, int)) -> list:
         queue = []
         visited = []
         if self.get_point(point) == Board.our or self.get_point(point) == Board.alien:
@@ -143,12 +142,12 @@ class Board:
                 neighbours = self.get_close_neighbours(current)
                 visited.append(current)
                 for neighbour in neighbours:
-                    if self.get_point(current) == self.get_point(neighbour) and \
-                            not is_visited(visited, queue, neighbour):
+                    if (self.get_point(current) == self.get_point(neighbour) and
+                            not is_visited(visited, queue, neighbour)):
                         queue.append(neighbour)
         return visited
 
-    def remove_dead_stones(self, last: (int, int)):
+    def remove_dead_stones(self, last: (int, int)) -> bool:
         stone_type = self.get_opposite_stone(self.get_point(last))
         last_neighbours = self.get_close_neighbours(last)
         all_deleted = 0
@@ -165,27 +164,20 @@ class Board:
             return True
         return False
 
-    def delete_group_if_it_is_dead(self, point: (int, int)):
-        group = self.is_dead(point)
+    def delete_group_if_it_is_dead(self, point: (int, int)) -> int:
+        group = self.dead_points(point)
         for point_from_group in group:
             self.set_point(point_from_group, Board.empty)
         return len(group)
 
-    #def equals(self, other):
-    #    if type(other) != type(self):
-     #       return False
-      #  if self.x == other.x & self.y == other.y:
-       #     return True
-       # else:
-        #    return False
+    def get_close_neighbours(self, point: (int, int)) -> list[(int, int)]:
+        return [
+            (point[0] - 1, point[1]), (point[0], point[1] - 1), (point[0] + 1, point[1]), (point[0], point[1] + 1)
+        ]
 
-    def get_close_neighbours(self, point: (int, int)):
-        return [(point[0] - 1, point[1]), (point[0], point[1] - 1), (point[0] + 1, point[1]),
-                (point[0], point[1] + 1)]
-
-    def get_diagonal_neighbours(self, point: (int, int)):
+    def get_diagonal_neighbours(self, point: (int, int)) -> list[(int, int)]:
         return [(point[0] - 1, point[1] - 1), (point[0] + 1, point[1] - 1), (point[0] + 1, point[1] + 1),
                 (point[0] - 1, point[1] + 1)]
 
-    def get_all_neighbours(self, point: (int, int)):
+    def get_all_neighbours(self, point: (int, int)) -> list[(int, int)]:
         return self.get_close_neighbours(point).extend(self.get_diagonal_neighbours(point))

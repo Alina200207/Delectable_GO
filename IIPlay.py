@@ -5,14 +5,13 @@ from Board import Board
 
 def get_free_points(board, stone_type):
     free_points = []
-    for i in range(board.size):
-        for j in range(board.size):
+    for i in range(board.size + 1):
+        for j in range(board.size + 1):
             p = (i, j)
-            if board.get_point(p) == Board.empty:
-                if board.check(p, stone_type):
-                    if board.is_eye_point(p) and board.is_real_eye(p):
-                        continue
-                    free_points.append(p)
+            if board.check(p, stone_type):
+                if board.is_eye_point(p) and board.is_real_eye(p):
+                    continue
+                free_points.append(p)
     return free_points
 
 
