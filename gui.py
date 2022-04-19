@@ -125,6 +125,9 @@ class MainWindow(QMainWindow):
                 if self.flag:
                     move = IIPlay.play_random_move(self.board)
                     self.board = move[0]
+                    print(move[1])
+                    for row in self.board.board:
+                        print(row)
                     if not move[1]:
                         self.count_pass += 1
                     else:
@@ -152,17 +155,17 @@ class MainWindow(QMainWindow):
         for i in range(self.board.size):
             for j in range(self.board.size):
                 point = (i, j)
-                if self.board.get_point(point) == Board.empty:
-                    survivors = self.board.get_close_neighbours(point)
+                if self.board.get_point_type(point) == Board.empty:
+                    survivors = self.board.get_close_neighbors(point)
                     isCompPoint = True
                     isPersonPoint = True
                     for p in survivors:
-                        point_type = self.board.get_point(p)
+                        point_type = self.board.get_point_type(p)
                         if point_type != Board.our and point_type != Board.border:
                             isCompPoint = False
                             break
                     for p in survivors:
-                        point_type = self.board.get_point(p)
+                        point_type = self.board.get_point_type(p)
                         if point_type != Board.alien and point_type != Board.border:
                             isPersonPoint = False
                             break
@@ -171,9 +174,9 @@ class MainWindow(QMainWindow):
                     if isPersonPoint:
                         person_score += 1
                 else:
-                    if self.board.get_point(point) == Board.our:
+                    if self.board.get_point_type(point) == Board.our:
                         comp_score += 1
-                    if self.board.get_point(point) == Board.alien:
+                    if self.board.get_point_type(point) == Board.alien:
                         person_score += 1
         return [comp_score, person_score]
 
