@@ -186,7 +186,7 @@ class MainWindow(QMainWindow):
         while not self.person_point and not self.click_pass:
             continue
         if not self.click_pass:
-            if self.board.check(self.person_point, Board.alien):
+            if self.board.check_move_correctness(self.person_point, Board.alien):
                 self.board.make_move(self.person_point, Board.alien)
                 self.count_pass = 0
                 self.click_pass = False

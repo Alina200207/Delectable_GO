@@ -10,10 +10,10 @@ def get_free_points(board, stone_type):
     :return: list of points where stone can be put
     """
     free_points = []
-    for i in range(board.size + 1):
-        for j in range(board.size + 1):
+    for i in range(1, board.size + 1):
+        for j in range(1, board.size + 1):
             p = (i, j)
-            if board.check(p, stone_type):
+            if board.check_move_correctness(p, stone_type):
                 if board.is_eye_point(p, Board.our) and board.is_real_eye(p):
                     continue
                 free_points.append(p)

@@ -60,6 +60,7 @@ class Board:
 
     def is_real_eye(self, point: (int, int)) -> bool:
         """
+        used only for computer move
         :param point: the point to check
         :return: a boolean value that determines whether the point is true eye or not
         """
@@ -135,7 +136,7 @@ class Board:
 
     def set_ko_position(self, point: (int, int), point_type):
         """
-        Set the ko position (position that can leading to the repeating of the move).
+        Set the ko position (position that can lead to the repeating of the move).
 
         :param point:
         :param point_type:
@@ -144,13 +145,14 @@ class Board:
         self.ko_point = point
         self.ko_time = 0
 
-    def is_ko_point(self, point: (int, int)) -> bool:
+    def is_ko_point(self, point: (int, int), point_type: int) -> bool:
         """
+        :param point_type: type of the stone
         :param point: the point at which the presence of a ko position is determined
         :return: a boolean value that determines is the point makes ko position or not
         """
         if self.ko_time == 0 and self.ko_point:
-            if point == self.ko_point and self.get_point_type(self.ko_point) == self.get_point_type(point):
+            if point == self.ko_point and self.ko_stone_type == point_type:
                 return True
         return False
 
@@ -170,7 +172,7 @@ class Board:
         self.set_point(point, point_type)
         self.remove_dead_stones(point)
 
-    def check(self, point: (int, int), point_type: int) -> bool:
+    def check_move_correctness(self, point: (int, int), point_type: int) -> bool:
         """
         :param point: the point at which the correctness of the stone move is checked
         :param point_type: type of the stone
@@ -178,10 +180,10 @@ class Board:
         """
         if self.get_point_type(point) != Board.empty:
             return False
+        if self.is_ko_point(point, point_type):
+            return False
         if self.dame_exists(point):
             return True
-        if self.is_ko_point(point):
-            return False
         neighbours = self.get_close_neighbors(point)
         self.try_move(point, point_type)
         if self.dead_points(point):
@@ -198,9 +200,10 @@ class Board:
 
     def dead_points(self, point: (int, int)) -> list:
         """
+        Find the points that become dead.
 
-        :param point:
-        :return:
+        :param point: point from which start looking for potentially dead points
+        :return: list of dead points
         """
         queue = []
         visited = []
@@ -218,27 +221,24 @@ class Board:
                         queue.append(neighbour)
         return visited
 
-    def remove_dead_stones(self, last: (int, int)) -> bool:
+    def remove_dead_stones(self, point: (int, int)) -> bool:
         """
+        Remove dead stones and set ko position if it exists.
 
-        :param last:
-        :return:
+        :param point: point from which the looking for dead points starts
         """
-        stone_type = self.get_opposite_stone(self.get_point_type(last))
-        last_neighbours = self.get_close_neighbors(last)
-        all_deleted = 0
-        is_eye = self.is_eye_point(last, self.get_point_type(last))
+        stone_type = self.get_opposite_stone(self.get_point_type(point))
+        last_neighbours = self.get_close_neighbors(point)
+        all_deleted_count = 0
+        is_eye = self.is_eye_point(point, self.get_point_type(point))
         for neighbour in last_neighbours:
             if self.get_point_type(neighbour) == stone_type:
-                deleted = self.delete_group_if_it_is_dead(neighbour)
-                all_deleted += deleted
-                if deleted == 1:
-                    last = neighbour
-        if all_deleted == 1 and last and is_eye:
-            self.set_ko_position(last, stone_type)
-        # if all_deleted > 0:
-        # return True
-        # return False
+                deleted_count = self.delete_group_if_it_is_dead(neighbour)
+                all_deleted_count += deleted_count
+                if deleted_count == 1:
+                    point = neighbour
+        if all_deleted_count == 1 and point and is_eye:
+            self.set_ko_position(point, stone_type)
 
     def delete_group_if_it_is_dead(self, point: (int, int)) -> int:
         """
@@ -274,4 +274,6 @@ class Board:
         :param point: the point
         :return: list of all neighbors of the point
         """
-        return self.get_close_neighbors(point).extend(self.get_diagonal_neighbors(point))
+        neighbors = self.get_close_neighbors(point)
+        neighbors.extend(self.get_diagonal_neighbors(point))
+        return neighbors
