@@ -125,6 +125,36 @@ class MyTestCase(unittest.TestCase):
         self.assertListEqual([(4, 6), (5, 5), (6, 6), (5, 7), (4, 5), (6, 5), (6, 7), (4, 7)],
                              board.get_all_neighbors((5, 6)))
 
+    def test_check_move_correctness(self):
+        board = Board.Board()
+        board.set_point((2, 3), board.alien)
+        board.set_point((2, 5), board.alien)
+        board.set_point((1, 4), board.alien)
+        board.set_point((2, 4), board.our)
+        # point is not empty
+        self.assertFalse(board.check_move_correctness((2, 4), board.alien))
+        board.set_ko_position((5, 6), board.our)
+        # point is ko
+        self.assertFalse(board.check_move_correctness((5, 6), board.our))
+        # point has dame
+        self.assertTrue(board.check_move_correctness((3, 4), board.alien))
+        # make a situation when point can make a "suicidal" move if it can kill enemy's points
+        board.set_point((9, 1), board.our)
+        board.set_point((7, 1), board.alien)
+        board.set_point((8, 1), board.our)
+        board.set_point((7, 2), board.alien)
+        board.set_point((8, 2), board.our)
+        board.set_point((8, 3), board.alien)
+        board.set_point((9, 3), board.our)
+        board.set_point((8, 4), board.alien)
+        board.set_point((9, 4), board.our)
+        board.set_point((9, 5), board.alien)
+        self.assertTrue(board.check_move_correctness((9, 2), board.alien))
+        # make a situation when point can not make suicidal move
+        board.set_point((1, 8), board.our)
+        board.set_point((2, 9), board.our)
+        self.assertFalse(board.check_move_correctness((1, 9), board.alien))
+
 
 if __name__ == '__main__':
     unittest.main()

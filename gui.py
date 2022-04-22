@@ -167,6 +167,7 @@ class MainWindow(QMainWindow):
             if self.count_pass >= 2:
                 self.open_dialog()
                 break
+            self.update()
 
     def do_comp_move(self):
         """creates the computer's progress"""
@@ -205,8 +206,8 @@ class MainWindow(QMainWindow):
         """
         comp_score = 0
         person_score = 0
-        for i in range(self.board.size):
-            for j in range(self.board.size):
+        for i in range(1, self.board.size + 1):
+            for j in range(1, self.board.size + 1):
                 point = (i, j)
                 if self.board.get_point_type(point) == Board.empty:
                     survivors = self.board.get_close_neighbors(point)

@@ -191,6 +191,10 @@ class Board:
                 if self.get_opposite_stone(point_type) != self.get_point_type(neighbour):
                     if self.dead_points(neighbour):
                         self.undo_move()
+                        return False
+                else:
+                    if self.dead_points(neighbour):
+                        self.undo_move()
                         return True
         else:
             self.undo_move()
@@ -252,7 +256,8 @@ class Board:
             self.set_point(point_from_group, Board.empty)
         return len(group)
 
-    def get_close_neighbors(self, point: (int, int)) -> list[(int, int)]:
+    @staticmethod
+    def get_close_neighbors(point: (int, int)) -> list[(int, int)]:
         """
         :param point: the point
         :return: list of direct neighbors of the point
@@ -261,7 +266,8 @@ class Board:
             (point[0] - 1, point[1]), (point[0], point[1] - 1), (point[0] + 1, point[1]), (point[0], point[1] + 1)
         ]
 
-    def get_diagonal_neighbors(self, point: (int, int)) -> list[(int, int)]:
+    @staticmethod
+    def get_diagonal_neighbors(point: (int, int)) -> list[(int, int)]:
         """
         :param point: the point
         :return: list of diagonal neighbors of the point
