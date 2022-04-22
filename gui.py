@@ -1,5 +1,7 @@
 import sys
 import threading
+import time
+
 import IIPlay
 
 from PyQt5.QtCore import QSize, Qt
@@ -54,7 +56,7 @@ class MainWindow(QMainWindow):
 
     def open_dialog(self):
         """creates a dialog box"""
-        point = self.count_points()
+        point = self.board.count_points()
         self.dlg.setStyleSheet(
                 "color: black; font: bold 16px; background-color: white;"
             )
@@ -171,7 +173,7 @@ class MainWindow(QMainWindow):
 
     def do_comp_move(self):
         """creates the computer's progress"""
-        move = IIPlay.play_random_move(self.board)
+        move = IIPlay.make_comp_move(self.board)
         self.board = move[0]
         if not move[1]:
             self.count_pass += 1
@@ -188,7 +190,11 @@ class MainWindow(QMainWindow):
             continue
         if not self.click_pass:
             if self.board.check_move_correctness(self.person_point, Board.alien):
+                for row in self.board.board:
+                    print(row)
                 self.board.make_move(self.person_point, Board.alien)
+                for row in self.board.board:
+                    print(row)
                 self.count_pass = 0
                 self.click_pass = False
             else:
@@ -198,39 +204,7 @@ class MainWindow(QMainWindow):
         self.setEnabled(False)
         self.update()
         self.flag = True
-
-    def count_points(self) -> list[int]:
-        """
-        computer and player scoring
-        :return: returns a sheet with computer and player points
-        """
-        comp_score = 0
-        person_score = 0
-        for i in range(1, self.board.size + 1):
-            for j in range(1, self.board.size + 1):
-                point = (i, j)
-                if self.board.get_point_type(point) == Board.empty:
-                    survivors = self.board.get_close_neighbors(point)
-                    is_comp_point = True
-                    is_person_point = True
-                    for p in survivors:
-                        point_type = self.board.get_point_type(p)
-                        if point_type != Board.our and point_type != Board.border:
-                            is_comp_point = False
-                            break
-                        if point_type != Board.alien and point_type != Board.border:
-                            is_person_point = False
-                            break
-                    if is_comp_point:
-                        comp_score += 1
-                    if is_person_point:
-                        person_score += 1
-                else:
-                    if self.board.get_point_type(point) == Board.our:
-                        comp_score += 1
-                    if self.board.get_point_type(point) == Board.alien:
-                        person_score += 1
-        return [comp_score, person_score]
+        time.sleep(1)
 
 
 if __name__ == '__main__':

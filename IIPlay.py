@@ -34,3 +34,29 @@ def play_random_move(board: Board):
     return board, move
 
 
+def make_comp_move(board: Board):
+    """
+    makes a move relative to the player's move
+    :param board: the board with current condition of the game
+    :return: returns the board and the coordinates of the stone
+    """
+    for i in range(1, board.size + 1):
+        for j in range(1, board.size + 1):
+            point = (i, j)
+            neighbors = board.get_close_neighbors(point)
+            if board.get_point_type(point) == Board.alien:
+                no_neighbors = True
+                point_neighbor = None
+                for neighbor in neighbors:
+                    if board.get_point_type(neighbor) == Board.alien:
+                        no_neighbors = False
+                    if (board.get_point_type(neighbor) == Board.empty
+                            and board.check_move_correctness(neighbor, board.our)):
+                        if board.is_eye_point(neighbor, Board.our) and board.is_real_eye(neighbor):
+                            continue
+                        point_neighbor = neighbor
+                        break
+                if no_neighbors and point_neighbor:
+                    board.make_move(point_neighbor, Board.our)
+                    return board, point_neighbor
+    return play_random_move(board)

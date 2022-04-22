@@ -22,6 +22,17 @@ class MyTestCase(unittest.TestCase):
         self.assertListEqual([(1, 6), (1, 7), (3, 6), (3, 7), (5, 6), (5, 7), (7, 6), (7, 7), (9, 6), (9, 7)],
                              IIPlay.get_free_points(board, board.our))
 
+    def test_make_comp_move(self):
+        board = Board.Board()
+        board.set_point((5, 4), board.alien)
+        for i in range(0, 4):
+            move = IIPlay.make_comp_move(board)
+            self.board = move[0]
+            board.set_point(move[1], board.our)
+        self.assertEqual(board.empty, board.get_point_type((5, 4)))
+        random_move = IIPlay.make_comp_move(board)
+        self.assertIsNotNone(random_move[1])
+
 
 if __name__ == '__main__':
     unittest.main()

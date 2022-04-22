@@ -97,7 +97,7 @@ class Board:
         self.board[point[0]][point[1]] = point_type
         if point_type == self.alien or point_type == self.our:
             self.last_point = (point[0], point[1])
-            self.ko_time += 1  # ?
+            self.ko_time += 1
 
     def get_opposite_stone(self, stone_type: int) -> int:
         """
@@ -234,7 +234,7 @@ class Board:
         stone_type = self.get_opposite_stone(self.get_point_type(point))
         last_neighbours = self.get_close_neighbors(point)
         all_deleted_count = 0
-        is_eye = self.is_eye_point(point, self.get_point_type(point))
+        is_eye = self.is_eye_point(point, stone_type)
         for neighbour in last_neighbours:
             if self.get_point_type(neighbour) == stone_type:
                 deleted_count = self.delete_group_if_it_is_dead(neighbour)
@@ -283,3 +283,36 @@ class Board:
         neighbors = self.get_close_neighbors(point)
         neighbors.extend(self.get_diagonal_neighbors(point))
         return neighbors
+
+    def count_points(self) -> list[int]:
+        """
+        Computer and player scoring
+        :return: returns a sheet with computer and player points
+        """
+        comp_score = 0
+        person_score = 0
+        for i in range(1, self.size + 1):
+            for j in range(1, self.size + 1):
+                point = (i, j)
+                if self.get_point_type(point) == Board.empty:
+                    survivors = self.get_close_neighbors(point)
+                    is_comp_point = True
+                    is_person_point = True
+                    for p in survivors:
+                        point_type = self.get_point_type(p)
+                        if point_type != Board.our and point_type != Board.border:
+                            is_comp_point = False
+                            break
+                        if point_type != Board.alien and point_type != Board.border:
+                            is_person_point = False
+                            break
+                    if is_comp_point:
+                        comp_score += 1
+                    if is_person_point:
+                        person_score += 1
+                else:
+                    if self.get_point_type(point) == Board.our:
+                        comp_score += 1
+                    if self.get_point_type(point) == Board.alien:
+                        person_score += 1
+        return [comp_score, person_score]
