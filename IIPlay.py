@@ -29,7 +29,6 @@ def play_random_move(board: Board):
     if len(free_points) == 0:
         return board, None
     move = free_points.pop(random.randint(0, len(free_points) - 1))
-    print(move)
     board.make_move(move, Board.our)
     return board, move
 

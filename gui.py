@@ -190,11 +190,7 @@ class MainWindow(QMainWindow):
             continue
         if not self.click_pass:
             if self.board.check_move_correctness(self.person_point, Board.alien):
-                for row in self.board.board:
-                    print(row)
                 self.board.make_move(self.person_point, Board.alien)
-                for row in self.board.board:
-                    print(row)
                 self.count_pass = 0
                 self.click_pass = False
             else:

@@ -155,6 +155,22 @@ class MyTestCase(unittest.TestCase):
         board.set_point((2, 9), board.our)
         self.assertFalse(board.check_move_correctness((1, 9), board.alien))
 
+    def test_count_points(self):
+        board = Board.Board()
+        for i in range(1, board.size + 1):
+            for j in range(1, board.size - 3):
+                if i % 2 == 0 and j % 2 == 0:
+                    board.make_move((i, j), board.alien)
+                if i % 2 == 1 and j % 2 == 1:
+                    board.make_move((i, j), board.alien)
+        for i in range(1, board.size + 1):
+            for j in range(board.size - 3, board.size + 1):
+                if i % 2 == 1 and j % 2 == 0:
+                    board.make_move((i, j), board.our)
+                if i % 2 == 0 and j % 2 == 1:
+                    board.make_move((i, j), board.our)
+        self.assertListEqual([36, 45], board.count_points())
+
 
 if __name__ == '__main__':
     unittest.main()

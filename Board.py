@@ -231,18 +231,19 @@ class Board:
 
         :param point: point from which the looking for dead points starts
         """
-        stone_type = self.get_opposite_stone(self.get_point_type(point))
+        point_type = self.get_point_type(point)
+        stone_opposite_type = self.get_opposite_stone(self.get_point_type(point))
         last_neighbours = self.get_close_neighbors(point)
         all_deleted_count = 0
-        is_eye = self.is_eye_point(point, stone_type)
+        is_eye = self.is_eye_point(point, stone_opposite_type)
         for neighbour in last_neighbours:
-            if self.get_point_type(neighbour) == stone_type:
+            if self.get_point_type(neighbour) == stone_opposite_type:
                 deleted_count = self.delete_group_if_it_is_dead(neighbour)
                 all_deleted_count += deleted_count
                 if deleted_count == 1:
                     point = neighbour
         if all_deleted_count == 1 and point and is_eye:
-            self.set_ko_position(point, stone_type)
+            self.set_ko_position(point, stone_opposite_type)
 
     def delete_group_if_it_is_dead(self, point: (int, int)) -> int:
         """
