@@ -263,6 +263,7 @@ class Board:
             self.set_point(point_from_group, Board.empty)
         return len(group)
 
+    # for point
     @staticmethod
     def get_close_neighbors(point: (int, int)) -> list[(int, int)]:
         """
@@ -273,6 +274,7 @@ class Board:
             (point[0] - 1, point[1]), (point[0], point[1] - 1), (point[0] + 1, point[1]), (point[0], point[1] + 1)
         ]
 
+    # for point
     @staticmethod
     def get_diagonal_neighbors(point: (int, int)) -> list[(int, int)]:
         """
@@ -282,6 +284,7 @@ class Board:
         return [(point[0] - 1, point[1] - 1), (point[0] + 1, point[1] - 1), (point[0] + 1, point[1] + 1),
                 (point[0] - 1, point[1] + 1)]
 
+    # for point
     def get_all_neighbors(self, point: (int, int)) -> list[(int, int)]:
         """
         :param point: the point
