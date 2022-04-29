@@ -4,7 +4,7 @@ import Board
 import IIPlay
 
 
-class MyTestCase(unittest.TestCase):
+class IIPlayTests(unittest.TestCase):
     def test_get_free_points(self):
         board = Board.Board()
         for i in range(1, board.size + 1):
