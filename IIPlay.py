@@ -78,15 +78,16 @@ def find_groups_and_count_dame(board):
 
 
 def find_dame(board, point: (int, int)) -> (int, int):
-        """
-        :param point: the point at which the existence of a dame is determined
-        :return: empty point
-        """
-        neighbours = board.get_close_neighbors(point)
-        for neighbour in neighbours:
-            if board.get_point_type(neighbour) == Board.Board.empty:
-                return neighbour
-        return None
+    """
+    :param board: the board with current condition of the game
+    :param point: the point at which the existence of a dame is determined
+    :return: empty point
+    """
+    neighbours = board.get_close_neighbors(point)
+    for neighbour in neighbours:
+        if board.get_point_type(neighbour) == Board.Board.empty:
+            return neighbour
+    return None
 
 
 def find_group(board, point):
