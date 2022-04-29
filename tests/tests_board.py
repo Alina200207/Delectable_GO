@@ -3,8 +3,7 @@ import unittest
 import Board
 
 
-class MyTestCase(unittest.TestCase):
-
+class BoardTests(unittest.TestCase):
     def test_is_visited(self):
         visited_list = [(1, 2), (3, 4), (5, 6)]
         queue_list = [(3, 5), (8, 9)]

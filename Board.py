@@ -33,6 +33,12 @@ class Board:
             self.board[k][0] = self.border
             self.board[k][self.size + 1] = self.border
             self.board[self.size + 1][k] = self.border
+        string_board = ''
+        with open('log_board.txt', 'w') as file:
+            file.write('board state: ')
+            for i in range(self.size + 2):
+                string_board = string_board + str(self.board[i]) + ';'
+            file.write(string_board + '\n')
 
     def dame_exists(self, point: (int, int)) -> bool:
         """
@@ -232,7 +238,7 @@ class Board:
         :param point: point from which the looking for dead points starts
         """
         point_type = self.get_point_type(point)
-        stone_opposite_type = self.get_opposite_stone(self.get_point_type(point))
+        stone_opposite_type = self.get_opposite_stone(point_type)
         last_neighbours = self.get_close_neighbors(point)
         all_deleted_count = 0
         is_eye = self.is_eye_point(point, stone_opposite_type)
@@ -297,16 +303,7 @@ class Board:
                 point = (i, j)
                 if self.get_point_type(point) == Board.empty:
                     survivors = self.get_close_neighbors(point)
-                    is_comp_point = True
-                    is_person_point = True
-                    for p in survivors:
-                        point_type = self.get_point_type(p)
-                        if point_type != Board.our and point_type != Board.border:
-                            is_comp_point = False
-                            break
-                        if point_type != Board.alien and point_type != Board.border:
-                            is_person_point = False
-                            break
+                    is_comp_point, is_person_point = self.check_point_type(survivors)
                     if is_comp_point:
                         comp_score += 1
                     if is_person_point:
@@ -316,4 +313,21 @@ class Board:
                         comp_score += 1
                     if self.get_point_type(point) == Board.alien:
                         person_score += 1
-        return [comp_score, person_score]
+        return comp_score, person_score
+
+    def check_point_type(self, survivors: list):
+        """
+        :param survivors: survivors points
+        :return: the boolean values that determines if the points are computer's or person's
+        """
+        is_comp_point = True
+        is_person_point = True
+        for p in survivors:
+            point_type = self.get_point_type(p)
+            if point_type != Board.our and point_type != Board.border:
+                is_comp_point = False
+                break
+            if point_type != Board.alien and point_type != Board.border:
+                is_person_point = False
+                break
+        return is_comp_point, is_person_point
