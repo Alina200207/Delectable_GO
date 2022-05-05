@@ -4,23 +4,13 @@ from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QApplication, QPushButton, QLabel, QLineEdit, QMainWindow, QWidget
 
 import gui
-
-
-def set_board_size_19():
-    window_board = gui.MainWindow(19)
-    window_board.show()
-    window_board.main()
-
-
-def set_board_size_9():
-    window_board = gui.MainWindow(9)
-    window_board.show()
-    window_board.main()
+import main_window
 
 
 class SelectionWindow(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, name, parent=None):
         super().__init__(parent, Qt.Window)
+        self.name = name
         self.setWindowTitle("Го")
         self.setStyleSheet("background-color: #F0C98D;")
         self.lbl = QLabel(self)
@@ -37,8 +27,8 @@ class SelectionWindow(QWidget):
         self.lbl.setStyleSheet("color: #8E4014; font-size: 40px;")
         self.lbl.adjustSize()
         self.setFixedSize(QSize(self.width_desk, self.height_desk))
-        self.button1.clicked.connect(set_board_size_9)
-        self.button2.clicked.connect(set_board_size_19)
+        self.button1.clicked.connect(self.set_board_size_9)
+        self.button2.clicked.connect(self.set_board_size_19)
         self.button1.setGeometry(int(self.width_desk * 0.1), int(self.height_desk * 0.4),
                                  int(self.width_desk * 0.35),
                                  int(self.height_desk * 0.35))
@@ -46,3 +36,20 @@ class SelectionWindow(QWidget):
                                  int(self.width_desk * 0.35),
                                  int(self.height_desk * 0.35))
 
+    def set_board_size_19(self):
+        """
+        transmits the size 19*19 of the board and calls the window with the board
+        """
+        window_board = gui.MainWindow(19, self.name)
+        window_board.show()
+        window_board.main()
+        self.hide()
+
+    def set_board_size_9(self):
+        """
+        transmits the size 9*9 of the board and calls the window with the board
+        """
+        window_board = gui.MainWindow(9, self.name)
+        window_board.show()
+        window_board.main()
+        self.hide()

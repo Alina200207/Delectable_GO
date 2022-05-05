@@ -32,7 +32,7 @@ def rewrite_file(last_condition: str):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, size_board):
+    def __init__(self, size_board, name):
         super().__init__()
         self.board_size = size_board
         self.setWindowTitle("Го")
@@ -61,8 +61,8 @@ class MainWindow(QMainWindow):
         self.person_point = None
         self.click_pass = False
         self.flag = True
-        self.player_name = 'Sam'
-
+        self.player_name = name
+        self.dlg = QMessageBox(self)
 
     def add_count_pass(self):
         """sums up the number of passes"""
@@ -123,7 +123,7 @@ class MainWindow(QMainWindow):
 
     def window_with_game_result(self):
         """creates a dialog box"""
-comp_score, person_score = self.board.count_points()
+        comp_score, person_score = self.board.count_points()
         self.work_with_database(comp_score, person_score)
         self.dlg.setStyleSheet(
             "color: black; font: bold 16px; background-color: white;"
@@ -133,11 +133,15 @@ comp_score, person_score = self.board.count_points()
         self.dlg.exec()
 
     def pass_comp(self):
+        """
+        displays a message that the computer has passed
+        """
         dlg = QDialog(self)
         dlg.setWindowTitle("Пасс компьютера")
         dlg.setGeometry(int(self.height_desk * 0.95), int(self.width_desk * 0.6),
                         int(self.width_desk * 0.4),
                         int(self.height_desk * 0.05))
+
         dlg.exec()
 
     def work_with_database(self, comp_score, person_score):
@@ -210,9 +214,9 @@ comp_score, person_score = self.board.count_points()
         :param y: coordinates by y
         :return: true or false depending on the ability to put a stone
         """
-        if x > self.board_size * self.size_sq:
+        if x > self.indent + (self.board_size - 1) * self.size_sq:
             return False
-        elif y > self.board_size * self.size_sq:
+        elif y > self.indent + (self.board_size - 1) * self.size_sq:
             return False
         elif x < self.indent:
             return False
@@ -251,7 +255,6 @@ comp_score, person_score = self.board.count_points()
     def game(self):
         """The main method of the game"""
         stone_type = Board.our
-
         self.setEnabled(False)
         while True:
             if stone_type == Board.our:
@@ -284,9 +287,7 @@ comp_score, person_score = self.board.count_points()
         self.board = move[0]
         if not move[1]:
             self.count_pass += 1
-            t = threading.Thread(target=self.pass_comp)
-            t.start()
-            t.join()
+            self.pass_comp()
         else:
             self.count_pass = 0
             self.click_pass = False
@@ -314,7 +315,10 @@ comp_score, person_score = self.board.count_points()
         self.flag = True
         time.sleep(0.5)
 
-    def closeEvent(self, **kwargs):
+    def closeEvent(self):
+        """
+        closes the window
+        """
         sys.exit(0)
 
 

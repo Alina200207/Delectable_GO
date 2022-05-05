@@ -7,8 +7,8 @@ import selection_window
 
 
 class MainWindow(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
+        super().__init__()
         self.setWindowTitle("Го")
         self.setStyleSheet("background-color: #F0C98D;")
         self.lbl = QLabel(self)
@@ -33,9 +33,13 @@ class MainWindow(QWidget):
                                       int(self.height_desk * 0.05))
 
     def get_text(self):
-        print(self.qle.text())
-        window_board = selection_window.SelectionWindow(self)
+        """
+        retrieves the entered text
+        """
+        name_player = self.qle.text()
+        window_board = selection_window.SelectionWindow(name_player, self)
         window_board.show()
+        self.hide()
 
 
 if __name__ == '__main__':
