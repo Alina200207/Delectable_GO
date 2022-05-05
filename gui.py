@@ -7,7 +7,7 @@ import time
 
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QPen, QPainter, QBrush
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox, QDialog
 
 import IIPlay
 from Board import Board
@@ -32,8 +32,9 @@ def rewrite_file(last_condition: str):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, size_board):
         super().__init__()
+        self.board_size = size_board
         self.setWindowTitle("Го")
         self.setStyleSheet("background-color: #F0C98D;")
         self.button_pass = QPushButton("Pass!", self)
@@ -55,13 +56,13 @@ class MainWindow(QMainWindow):
                                               int(self.width_desk * 0.2),
                                               int(self.height_desk * 0.05))
         self.indent = int(self.width_desk * 0.1)
-        self.size_sq = (self.width_desk - self.indent * 2) // 8
-        self.board = Board(9)
+        self.size_sq = (self.width_desk - self.indent * 2) // (self.board_size - 1)
+        self.board = Board(self.board_size )
         self.person_point = None
         self.click_pass = False
         self.flag = True
-        self.dlg = QMessageBox(self)
         self.player_name = 'Sam'
+
 
     def add_count_pass(self):
         """sums up the number of passes"""
@@ -122,7 +123,7 @@ class MainWindow(QMainWindow):
 
     def window_with_game_result(self):
         """creates a dialog box"""
-        comp_score, person_score = self.board.count_points()
+comp_score, person_score = self.board.count_points()
         self.work_with_database(comp_score, person_score)
         self.dlg.setStyleSheet(
             "color: black; font: bold 16px; background-color: white;"
@@ -130,6 +131,14 @@ class MainWindow(QMainWindow):
         self.dlg.setWindowTitle("Результат игры")
         self.dlg.setText("Очки игрока: " + str(person_score) + '\nОчки компьютера: ' + str(comp_score))
         self.dlg.exec()
+
+    def pass_comp(self):
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Пасс компьютера")
+        dlg.setGeometry(int(self.height_desk * 0.95), int(self.width_desk * 0.6),
+                        int(self.width_desk * 0.4),
+                        int(self.height_desk * 0.05))
+        dlg.exec()
 
     def work_with_database(self, comp_score, person_score):
         base = sqlite3.connect('info_about_players.db')
@@ -156,9 +165,11 @@ class MainWindow(QMainWindow):
         """
         pen = QPen(Qt.black, 3, Qt.SolidLine)
         qp.setPen(pen)
-        for i in range(9):
-            qp.drawLine(self.indent, self.indent + self.size_sq * i, 9 * self.size_sq, self.indent + self.size_sq * i)
-            qp.drawLine(self.indent + self.size_sq * i, self.indent, self.indent + self.size_sq * i, 9 * self.size_sq)
+        for i in range(self.board_size):
+            qp.drawLine(self.indent, self.indent + self.size_sq * i, self.indent + (self.board_size - 1) * self.size_sq,
+                        self.indent + self.size_sq * i)
+            qp.drawLine(self.indent + self.size_sq * i, self.indent, self.indent + self.size_sq * i,
+                        self.indent + (self.board_size - 1) * self.size_sq)
 
     def draw_stone(self, qp):
         """
@@ -199,9 +210,9 @@ class MainWindow(QMainWindow):
         :param y: coordinates by y
         :return: true or false depending on the ability to put a stone
         """
-        if x > 9 * self.size_sq:
+        if x > self.board_size * self.size_sq:
             return False
-        elif y > 9 * self.size_sq:
+        elif y > self.board_size * self.size_sq:
             return False
         elif x < self.indent:
             return False
@@ -273,6 +284,9 @@ class MainWindow(QMainWindow):
         self.board = move[0]
         if not move[1]:
             self.count_pass += 1
+            t = threading.Thread(target=self.pass_comp)
+            t.start()
+            t.join()
         else:
             self.count_pass = 0
             self.click_pass = False
@@ -300,10 +314,7 @@ class MainWindow(QMainWindow):
         self.flag = True
         time.sleep(0.5)
 
+    def closeEvent(self, **kwargs):
+        sys.exit(0)
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    window.main()
-    sys.exit(app.exec_())
+

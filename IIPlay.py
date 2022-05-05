@@ -40,10 +40,11 @@ def make_comp_move(board: Board):
     :return: returns the board and the coordinates of the stone
     """
     groups = find_groups_and_count_dame(board)
-    groups = dict(sorted(groups.items(), key=lambda x: x[0]))
     if not groups:
         return play_random_move(board)
-    for group in groups.values():
+    sorted(groups.items(), key=lambda x: x[0])
+    groups = groups.values()
+    for group in groups:
         if board.is_eye_point(group[0], Board.Board.our) and board.is_real_eye(group[0]):
             continue
         point = find_dame(board, group[0])
@@ -76,6 +77,7 @@ def find_groups_and_count_dame(board):
                 if count not in groups:
                     groups[count] = neighbors
     return groups
+
 
 
 def find_dame(board, point: OrdinaryPoint) -> OrdinaryPoint:
