@@ -314,7 +314,7 @@ class Board:
                     if self.get_point_type(point) == Board.alien:
                         person_score += 1
         return comp_score, person_score
-
+# о бновлять текущий результат в базу данных, имя, оличество сыгранных игр, кол-во выигранных, суммарное количество очков
     def check_point_type(self, survivors: list):
         """
         :param survivors: survivors points
