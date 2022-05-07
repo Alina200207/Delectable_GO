@@ -1,5 +1,6 @@
 import sys
 
+from PyQt5.QtGui import QFont
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QApplication, QPushButton, QLabel, QLineEdit, QMainWindow, QWidget
 
@@ -14,17 +15,20 @@ class SelectionWindow(QWidget):
         self.setWindowTitle("Го")
         self.setStyleSheet("background-color: #F0C98D;")
         self.lbl = QLabel(self)
-        self.button1 = QPushButton("9*9", self)
-        self.button2 = QPushButton("19*19", self)
-        self.button1.setStyleSheet("background-color: #FFE7AB; font-size: 20px;")
-        self.button2.setStyleSheet("background-color: #FFE7AB; font-size: 20px;")
         self.desktop = QApplication.desktop()
         self.height_desk = int(self.desktop.height() * 0.8)
         self.width_desk = int(self.height_desk * 0.9)
-        self.lbl.move(int(self.width_desk * 0.2), int(self.height_desk * 0.2))
+        self.button1 = QPushButton("9*9", self)
+        self.button2 = QPushButton("19*19", self)
+        self.button1.setStyleSheet("background-color: #FFE7AB;")
+        self.button1.setFont(QFont("Times", int(self.width_desk * 0.015)))
+        self.button2.setStyleSheet("background-color: #FFE7AB;")
+        self.button2.setFont(QFont("Times", int(self.width_desk * 0.015)))
+        self.lbl.move(int(self.width_desk * 0.25), int(self.height_desk * 0.2))
         self.lbl.setText("Выберите размер доски")
         self.lbl.setAlignment(Qt.AlignCenter)
-        self.lbl.setStyleSheet("color: #8E4014; font-size: 40px;")
+        self.lbl.setStyleSheet("color: #8E4014;")
+        self.lbl.setFont(QFont("Times", int(self.width_desk * 0.03)))
         self.lbl.adjustSize()
         self.setFixedSize(QSize(self.width_desk, self.height_desk))
         self.button1.clicked.connect(self.set_board_size_9)
