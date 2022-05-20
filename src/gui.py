@@ -34,8 +34,9 @@ def rewrite_file(last_condition: str):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, size_board, name):
-        super().__init__()
+    def __init__(self, size_board, name, parent=None):
+        print("sdfgvbhjn")
+        super().__init__(parent, Qt.Window)
         self.board_size = size_board
         self.setWindowTitle("Го")
         self.setStyleSheet("background-color: #F0C98D;")
@@ -43,6 +44,9 @@ class MainWindow(QMainWindow):
         self.button_pass.setStyleSheet("background-color: #FFE7AB;")
         self.button_previous_move = QPushButton("Undo move!", self)
         self.button_previous_move.setStyleSheet("background-color: #FFE7AB;")
+        self.button_replay = QPushButton("Replay!", self)
+        self.button_replay.setStyleSheet("background-color: #FFE7AB;")
+
         self.desktop = QApplication.desktop()
         self.height_desk = int(self.desktop.height() * 0.8)
         self.width_desk = int(self.height_desk * 0.9)
@@ -57,6 +61,10 @@ class MainWindow(QMainWindow):
         self.button_previous_move.setGeometry(int(self.width_desk * 0.2), int(self.height_desk * 0.9),
                                               int(self.width_desk * 0.2),
                                               int(self.height_desk * 0.05))
+        self.button_replay.setGeometry(int(self.width_desk * 0.4), int(self.height_desk * 0.9),
+                                       int(self.width_desk * 0.2),
+                                       int(self.height_desk * 0.05))
+        self.button_replay.clicked.connect(self.replay)
         self.indent = int(self.width_desk * 0.1)
         self.size_sq = (self.width_desk - self.indent * 2) // (self.board_size - 1)
         self.board = Board(self.board_size)
@@ -78,6 +86,17 @@ class MainWindow(QMainWindow):
         self.game_end = False
         self.player_name = name
         self.dlg = QMessageBox(self)
+
+    def replay(self):
+        self.board = Board(self.board_size)
+        self.stone_type = Board.our
+        self.person_point = None
+        self.click_pass = False
+        self.flag = True
+        self.game_end = False
+        self.is_person_move = False
+        os.remove('log_board.txt')
+        self.main()
 
     def add_count_pass(self):
         """sums up the number of passes"""
@@ -117,13 +136,13 @@ class MainWindow(QMainWindow):
         Change the state of previous move button.
         """
         with open('log_board.txt', 'r') as file:
-            file.readline()
-            data = file.readline()
-            print(data)
+                file.readline()
+                data = file.readline()
+                print(data)
         if self.board.count_stones_on_board() == 1 or not data:
-            self.button_previous_move.setEnabled(False)
+                self.button_previous_move.setEnabled(False)
         else:
-            self.button_previous_move.setEnabled(True)
+                self.button_previous_move.setEnabled(True)
 
     def process_new_board(self, string_board: list[str]) -> list[list[int]]:
         """
@@ -162,7 +181,7 @@ class MainWindow(QMainWindow):
         database = Database()
         database.update_info_about_player(self.player_name, 1 if comp_score < person_score else 0, person_score)
         database.close_database()
-        self.closeEvent()
+        self.closeEvent("event")
 
     def pass_comp(self):
         """
@@ -352,4 +371,4 @@ class MainWindow(QMainWindow):
         print("save")
         self.last_games_info.save_last_games()
         os.remove('log_board.txt')
-        self.close()
+        sys.exit()
