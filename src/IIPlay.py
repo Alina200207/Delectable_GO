@@ -70,7 +70,8 @@ def find_groups_and_count_dame(board):
             point = OrdinaryPoint(i, j)
             neighbors = find_group(board, point)
             if neighbors is None:
-                return play_random_move(board)
+                continue
+                #return play_random_move(board)
             if board.get_point_type(point) == Board.Board.alien:
                 for neighbor in neighbors:
                     count = count_dame(board, neighbor)

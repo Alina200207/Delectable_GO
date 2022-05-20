@@ -23,7 +23,7 @@ class Board:
     alien = 3
     border = 4
 
-    def __init__(self, board_size):
+    def __init__(self, board_size: int):
         self.size = board_size
         self.ko_time = 0
         self.ko_point = None
