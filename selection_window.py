@@ -44,7 +44,7 @@ class SelectionWindow(QWidget):
         """
         transmits the size 19*19 of the board and calls the window with the board
         """
-        window_board = gui.MainWindow(19, self.name)
+        window_board = gui.MainWindow(19, self.name, self)
         window_board.show()
         window_board.main()
         self.hide()
@@ -53,7 +53,7 @@ class SelectionWindow(QWidget):
         """
         transmits the size 9*9 of the board and calls the window with the board
         """
-        window_board = gui.MainWindow(9, self.name)
+        window_board = gui.MainWindow(9, self.name, self)
         window_board.show()
         window_board.main()
         self.hide()

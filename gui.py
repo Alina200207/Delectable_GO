@@ -7,7 +7,7 @@ import time
 
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QPen, QPainter, QBrush
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox, QDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox, QDialog, QWidget
 
 import IIPlay
 from Board import Board
@@ -31,9 +31,9 @@ def rewrite_file(last_condition: str):
     os.replace('auxiliary_file.txt', 'log_board.txt')
 
 
-class MainWindow(QMainWindow):
-    def __init__(self, size_board, name):
-        super().__init__()
+class MainWindow(QWidget):
+    def __init__(self, size_board, name, parent=None):
+        super().__init__(parent, Qt.Window)
         self.board_size = size_board
         self.setWindowTitle("Го")
         self.setStyleSheet("background-color: #F0C98D;")
@@ -41,6 +41,8 @@ class MainWindow(QMainWindow):
         self.button_pass.setStyleSheet("background-color: #FFE7AB;")
         self.button_previous_move = QPushButton("Undo move!", self)
         self.button_previous_move.setStyleSheet("background-color: #FFE7AB;")
+        self.button_replay = QPushButton("Replay!", self)
+        self.button_replay.setStyleSheet("background-color: #FFE7AB;")
         self.desktop = QApplication.desktop()
         self.height_desk = int(self.desktop.height() * 0.8)
         self.width_desk = int(self.height_desk * 0.9)
@@ -49,20 +51,32 @@ class MainWindow(QMainWindow):
         self.count_pass = 0
         self.button_pass.clicked.connect(self.add_count_pass)
         self.button_previous_move.clicked.connect(self.set_previous_move)
-        self.button_pass.setGeometry(int(self.width_desk * 0.6), int(self.height_desk * 0.9),
+        self.button_pass.setGeometry(int(self.width_desk * 0.7), int(self.height_desk * 0.9),
                                      int(self.width_desk * 0.2),
                                      int(self.height_desk * 0.05))
-        self.button_previous_move.setGeometry(int(self.width_desk * 0.2), int(self.height_desk * 0.9),
+        self.button_previous_move.setGeometry(int(self.width_desk * 0.1), int(self.height_desk * 0.9),
                                               int(self.width_desk * 0.2),
                                               int(self.height_desk * 0.05))
+        self.button_replay.setGeometry(int(self.width_desk * 0.4), int(self.height_desk * 0.9),
+                                              int(self.width_desk * 0.2),
+                                              int(self.height_desk * 0.05))
+        self.button_replay.clicked.connect(self.replay)
         self.indent = int(self.width_desk * 0.1)
         self.size_sq = (self.width_desk - self.indent * 2) // (self.board_size - 1)
-        self.board = Board(self.board_size )
+        self.board = Board(self.board_size)
         self.person_point = None
         self.click_pass = False
         self.flag = True
         self.player_name = name
+        self.stone_type = Board.our
         self.dlg = QMessageBox(self)
+
+    def replay(self):
+        self.board = Board(self.board_size)
+        self.stone_type = Board.our
+        self.flag = True
+        os.remove('log_board.txt')
+        self.main()
 
     def add_count_pass(self):
         """sums up the number of passes"""
@@ -131,18 +145,18 @@ class MainWindow(QMainWindow):
         self.dlg.setWindowTitle("Результат игры")
         self.dlg.setText("Очки игрока: " + str(person_score) + '\nОчки компьютера: ' + str(comp_score))
         self.dlg.exec()
+        # self.closeEvent()
 
     def pass_comp(self):
         """
         displays a message that the computer has passed
         """
-        dlg = QDialog(self)
-        dlg.setWindowTitle("Пасс компьютера")
-        dlg.setGeometry(int(self.height_desk * 0.95), int(self.width_desk * 0.6),
+        qdlg = QDialog(self)
+        qdlg.setWindowTitle("Пасс компьютера")
+        qdlg.setGeometry(int(self.height_desk * 0.95), int(self.width_desk * 0.6),
                         int(self.width_desk * 0.4),
                         int(self.height_desk * 0.05))
-
-        dlg.exec()
+        qdlg.exec()
 
     def work_with_database(self, comp_score, person_score):
         base = sqlite3.connect('info_about_players.db')
@@ -254,10 +268,9 @@ class MainWindow(QMainWindow):
 
     def game(self):
         """The main method of the game"""
-        stone_type = Board.our
         self.setEnabled(False)
         while True:
-            if stone_type == Board.our:
+            if self.stone_type == Board.our:
                 if self.flag:
                     self.do_comp_move()
                     string_board = ''
@@ -268,10 +281,13 @@ class MainWindow(QMainWindow):
                         file.write(string_board + '\n')
                 else:
                     continue
-                stone_type = self.board.get_opposite_stone(stone_type)
-            if stone_type == Board.alien:
-                self.do_person_move()
-                stone_type = self.board.get_opposite_stone(stone_type)
+                self.stone_type = self.board.get_opposite_stone(self.stone_type)
+            if self.stone_type == Board.alien:
+                if self.flag:
+                    continue
+                else:
+                    self.do_person_move()
+                    self.stone_type = self.board.get_opposite_stone(self.stone_type)
             if self.count_pass >= 2:
                 self.window_with_game_result()
                 self.setDisabled(True)
@@ -287,7 +303,7 @@ class MainWindow(QMainWindow):
         self.board = move[0]
         if not move[1]:
             self.count_pass += 1
-            self.pass_comp()
+            # self.pass_comp()
         else:
             self.count_pass = 0
             self.click_pass = False
