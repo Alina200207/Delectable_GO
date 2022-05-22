@@ -12,6 +12,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox,
 import IIPlay
 from Board import Board
 from Point import OrdinaryPoint
+from LastGamesStates import LastGamesStates
+from Database import Database
 
 board_in_string_pattern = re.compile(r'board state: (.*)')
 column_pattern = re.compile(r'\[(.*?)\]')
@@ -32,8 +34,9 @@ def rewrite_file(last_condition: str):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, size_board):
-        super().__init__()
+    def __init__(self, size_board, name, parent=None):
+        print("sdfgvbhjn")
+        super().__init__(parent, Qt.Window)
         self.board_size = size_board
         self.setWindowTitle("Го")
         self.setStyleSheet("background-color: #F0C98D;")
@@ -41,6 +44,9 @@ class MainWindow(QMainWindow):
         self.button_pass.setStyleSheet("background-color: #FFE7AB;")
         self.button_previous_move = QPushButton("Undo move!", self)
         self.button_previous_move.setStyleSheet("background-color: #FFE7AB;")
+        self.button_replay = QPushButton("Replay!", self)
+        self.button_replay.setStyleSheet("background-color: #FFE7AB;")
+
         self.desktop = QApplication.desktop()
         self.height_desk = int(self.desktop.height() * 0.8)
         self.width_desk = int(self.height_desk * 0.9)
@@ -55,14 +61,42 @@ class MainWindow(QMainWindow):
         self.button_previous_move.setGeometry(int(self.width_desk * 0.2), int(self.height_desk * 0.9),
                                               int(self.width_desk * 0.2),
                                               int(self.height_desk * 0.05))
+        self.button_replay.setGeometry(int(self.width_desk * 0.4), int(self.height_desk * 0.9),
+                                       int(self.width_desk * 0.2),
+                                       int(self.height_desk * 0.05))
+        self.button_replay.clicked.connect(self.replay)
         self.indent = int(self.width_desk * 0.1)
         self.size_sq = (self.width_desk - self.indent * 2) // (self.board_size - 1)
-        self.board = Board(self.board_size )
+        self.board = Board(self.board_size)
+        self.last_games_info = LastGamesStates()
+        info_about_player_last_game = self.last_games_info.get_last_game_of_player(name, self.board_size)
+        self.is_person_move = False
+        if info_about_player_last_game:
+            self.board.board = info_about_player_last_game[0]
+            self.is_person_move = info_about_player_last_game[1]
+            string_board = ''
+            with open('log_board.txt', 'a') as file:
+                file.write('board state: ')
+                for row in self.board.board:
+                    string_board = string_board + str(row) + ';'
+                file.write(string_board + '\n')
         self.person_point = None
         self.click_pass = False
         self.flag = True
-        self.player_name = 'Sam'
+        self.game_end = False
+        self.player_name = name
+        self.dlg = QMessageBox(self)
 
+    def replay(self):
+        self.board = Board(self.board_size)
+        self.stone_type = Board.our
+        self.person_point = None
+        self.click_pass = False
+        self.flag = True
+        self.game_end = False
+        self.is_person_move = False
+        os.remove('log_board.txt')
+        self.main()
 
     def add_count_pass(self):
         """sums up the number of passes"""
@@ -84,17 +118,31 @@ class MainWindow(QMainWindow):
                     position_of_previous = position_of_current
                     position_of_current = file.tell() - line_length
                 data = file.readline()
-            file.seek(position_of_previous, 0)
+            file.seek(position_of_previous)
             board_from_file = file.readline()
             match = re.match(board_in_string_pattern, board_from_file)
             if match:
                 string_board = match.group(1).split(';')
                 new_board = self.process_new_board(string_board)
-            file.seek(position_of_current, 0)
+            file.seek(position_of_current)
             last_condition = file.readline()
         rewrite_file(last_condition)
         self.board.board = new_board
+        self.change_state_of_previous_move_button()
         self.repaint()
+
+    def change_state_of_previous_move_button(self):
+        """
+        Change the state of previous move button.
+        """
+        with open('log_board.txt', 'r') as file:
+                file.readline()
+                data = file.readline()
+                print(data)
+        if self.board.count_stones_on_board() == 1 or not data:
+                self.button_previous_move.setEnabled(False)
+        else:
+                self.button_previous_move.setEnabled(True)
 
     def process_new_board(self, string_board: list[str]) -> list[list[int]]:
         """
@@ -123,40 +171,29 @@ class MainWindow(QMainWindow):
 
     def window_with_game_result(self):
         """creates a dialog box"""
-comp_score, person_score = self.board.count_points()
-        self.work_with_database(comp_score, person_score)
+        comp_score, person_score = self.board.count_points()
         self.dlg.setStyleSheet(
             "color: black; font: bold 16px; background-color: white;"
         )
         self.dlg.setWindowTitle("Результат игры")
         self.dlg.setText("Очки игрока: " + str(person_score) + '\nОчки компьютера: ' + str(comp_score))
         self.dlg.exec()
+        database = Database()
+        database.update_info_about_player(self.player_name, 1 if comp_score < person_score else 0, person_score)
+        database.close_database()
+        self.closeEvent("event")
 
     def pass_comp(self):
+        """
+        displays a message that the computer has passed
+        """
         dlg = QDialog(self)
         dlg.setWindowTitle("Пасс компьютера")
         dlg.setGeometry(int(self.height_desk * 0.95), int(self.width_desk * 0.6),
                         int(self.width_desk * 0.4),
                         int(self.height_desk * 0.05))
+
         dlg.exec()
-
-    def work_with_database(self, comp_score, person_score):
-        base = sqlite3.connect('info_about_players.db')
-        cur = base.cursor()
-        base.execute('CREATE TABLE IF NOT EXISTS players(player_name PRIMARY KEY, game_count, win_game_count, '
-                     'general_points_count)')
-        base.commit()
-        info = cur.execute('SELECT * FROM players WHERE player_name=?', (self.player_name,))
-        win = 1 if comp_score < person_score else 0
-        if not info.fetchone():
-            cur.execute('INSERT INTO players VALUES(?, ?, ?, ?)', (self.player_name, 1, win, person_score,))
-        else:
-
-            cur.execute('UPDATE players SET game_count=game_count + ?, win_game_count=win_game_count + ?, '
-                        'general_points_count=general_points_count + ? WHERE player_name=?',
-                        (1, win, person_score, self.player_name,))
-        base.commit()
-        base.close()
 
     def draw_board(self, qp):
         """
@@ -210,9 +247,9 @@ comp_score, person_score = self.board.count_points()
         :param y: coordinates by y
         :return: true or false depending on the ability to put a stone
         """
-        if x > self.board_size * self.size_sq:
+        if x > self.indent + (self.board_size - 1) * self.size_sq:
             return False
-        elif y > self.board_size * self.size_sq:
+        elif y > self.indent + (self.board_size - 1) * self.size_sq:
             return False
         elif x < self.indent:
             return False
@@ -221,6 +258,7 @@ comp_score, person_score = self.board.count_points()
     def draw_white_stone(self, qp, x, y):
         """
         a white stone is created
+
         :param qp: instance of QPainter
         :param x: coordinates by x
         :param y: coordinates by y
@@ -234,6 +272,7 @@ comp_score, person_score = self.board.count_points()
     def draw_black_stone(self, qp, x, y):
         """
         a black stone is being created
+
         :param qp: instance of QPainter
         :param x: coordinates by x
         :param y: coordinates by y
@@ -250,12 +289,15 @@ comp_score, person_score = self.board.count_points()
 
     def game(self):
         """The main method of the game"""
-        stone_type = Board.our
-
-        self.setEnabled(False)
+        stone_type = Board.alien
+        if not self.is_person_move:
+            stone_type = Board.our
+            self.setEnabled(False)
         while True:
             if stone_type == Board.our:
+                self.button_previous_move.setEnabled(False)
                 if self.flag:
+                    self.is_person_move = False
                     self.do_comp_move()
                     string_board = ''
                     with open('log_board.txt', 'a') as file:
@@ -267,9 +309,12 @@ comp_score, person_score = self.board.count_points()
                     continue
                 stone_type = self.board.get_opposite_stone(stone_type)
             if stone_type == Board.alien:
+                self.is_person_move = True
+                self.change_state_of_previous_move_button()
                 self.do_person_move()
                 stone_type = self.board.get_opposite_stone(stone_type)
             if self.count_pass >= 2:
+                self.game_end = True
                 self.window_with_game_result()
                 self.setDisabled(True)
                 os.remove('log_board.txt')
@@ -284,9 +329,7 @@ comp_score, person_score = self.board.count_points()
         self.board = move[0]
         if not move[1]:
             self.count_pass += 1
-            t = threading.Thread(target=self.pass_comp)
-            t.start()
-            t.join()
+            # self.pass_comp()
         else:
             self.count_pass = 0
             self.click_pass = False
@@ -296,11 +339,8 @@ comp_score, person_score = self.board.count_points()
         """processes the player 's move"""
         self.setEnabled(True)
         while not self.person_point and not self.click_pass:
-            if self.board.count_stones_on_board() == 1:
-                self.button_previous_move.setEnabled(False)
-            else:
-                self.button_previous_move.setEnabled(True)
             continue
+
         if not self.click_pass:
             if self.board.check_move_correctness(self.person_point, Board.alien):
                 self.board.make_move(self.person_point, Board.alien)
@@ -314,7 +354,21 @@ comp_score, person_score = self.board.count_points()
         self.flag = True
         time.sleep(0.5)
 
-    def closeEvent(self, **kwargs):
-        sys.exit(0)
+    def closeEvent(self, event):
+        """
+        closes the window
 
-
+        :param **kwargs:
+        """
+        move_of = "c"
+        print("gbhbgjjhgj")
+        if self.is_person_move:
+            move_of = "p"
+        if not self.game_end:
+            self.last_games_info.set_last_game_of_player(self.player_name, self.board_size, move_of, self.board.board)
+        else:
+            self.last_games_info.delete_last_game_of_player(self.player_name, self.board_size)
+        print("save")
+        self.last_games_info.save_last_games()
+        os.remove('log_board.txt')
+        sys.exit()
