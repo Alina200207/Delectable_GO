@@ -168,7 +168,7 @@ class BoardTests(unittest.TestCase):
                     board.make_move((i, j), board.our)
                 if i % 2 == 0 and j % 2 == 1:
                     board.make_move((i, j), board.our)
-        self.assertListEqual([36, 45], board.count_points())
+        self.assertEqual((36, 45), board.count_points())
 
 
 if __name__ == '__main__':
