@@ -1,15 +1,17 @@
 import os
 import re
+import sqlite3
 import sys
 import threading
 import time
 
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QPen, QPainter, QBrush
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QMessageBox, QDialog
 
 import IIPlay
 from Board import Board
+from Point import OrdinaryPoint
 
 board_in_string_pattern = re.compile(r'board state: (.*)')
 column_pattern = re.compile(r'\[(.*?)\]')
@@ -30,8 +32,9 @@ def rewrite_file(last_condition: str):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, size_board):
         super().__init__()
+        self.board_size = size_board
         self.setWindowTitle("Го")
         self.setStyleSheet("background-color: #F0C98D;")
         self.button_pass = QPushButton("Pass!", self)
@@ -53,12 +56,13 @@ class MainWindow(QMainWindow):
                                               int(self.width_desk * 0.2),
                                               int(self.height_desk * 0.05))
         self.indent = int(self.width_desk * 0.1)
-        self.size_sq = (self.width_desk - self.indent * 2) // 8
-        self.board = Board()
+        self.size_sq = (self.width_desk - self.indent * 2) // (self.board_size - 1)
+        self.board = Board(self.board_size )
         self.person_point = None
         self.click_pass = False
         self.flag = True
-        self.dlg = QMessageBox(self)
+        self.player_name = 'Sam'
+
 
     def add_count_pass(self):
         """sums up the number of passes"""
@@ -114,18 +118,45 @@ class MainWindow(QMainWindow):
 
     def mousePressEvent(self, a0):
         """reacts to right-click and records coordinates"""
-        self.person_point = (round((a0.x() - self.indent) / self.size_sq) + 1,
-                             round((a0.y() - self.indent) / self.size_sq) + 1)
+        self.person_point = OrdinaryPoint(round((a0.x() - self.indent) / self.size_sq) + 1,
+                                          round((a0.y() - self.indent) / self.size_sq) + 1)
 
-    def open_dialog(self):
+    def window_with_game_result(self):
         """creates a dialog box"""
-        point = self.board.count_points()
+comp_score, person_score = self.board.count_points()
+        self.work_with_database(comp_score, person_score)
         self.dlg.setStyleSheet(
             "color: black; font: bold 16px; background-color: white;"
         )
         self.dlg.setWindowTitle("Результат игры")
-        self.dlg.setText("Очки игрока: " + str(point[1]) + '\nОчки компьютера: ' + str(point[0]))
+        self.dlg.setText("Очки игрока: " + str(person_score) + '\nОчки компьютера: ' + str(comp_score))
         self.dlg.exec()
+
+    def pass_comp(self):
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Пасс компьютера")
+        dlg.setGeometry(int(self.height_desk * 0.95), int(self.width_desk * 0.6),
+                        int(self.width_desk * 0.4),
+                        int(self.height_desk * 0.05))
+        dlg.exec()
+
+    def work_with_database(self, comp_score, person_score):
+        base = sqlite3.connect('info_about_players.db')
+        cur = base.cursor()
+        base.execute('CREATE TABLE IF NOT EXISTS players(player_name PRIMARY KEY, game_count, win_game_count, '
+                     'general_points_count)')
+        base.commit()
+        info = cur.execute('SELECT * FROM players WHERE player_name=?', (self.player_name,))
+        win = 1 if comp_score < person_score else 0
+        if not info.fetchone():
+            cur.execute('INSERT INTO players VALUES(?, ?, ?, ?)', (self.player_name, 1, win, person_score,))
+        else:
+
+            cur.execute('UPDATE players SET game_count=game_count + ?, win_game_count=win_game_count + ?, '
+                        'general_points_count=general_points_count + ? WHERE player_name=?',
+                        (1, win, person_score, self.player_name,))
+        base.commit()
+        base.close()
 
     def draw_board(self, qp):
         """
@@ -134,9 +165,11 @@ class MainWindow(QMainWindow):
         """
         pen = QPen(Qt.black, 3, Qt.SolidLine)
         qp.setPen(pen)
-        for i in range(9):
-            qp.drawLine(self.indent, self.indent + self.size_sq * i, 9 * self.size_sq, self.indent + self.size_sq * i)
-            qp.drawLine(self.indent + self.size_sq * i, self.indent, self.indent + self.size_sq * i, 9 * self.size_sq)
+        for i in range(self.board_size):
+            qp.drawLine(self.indent, self.indent + self.size_sq * i, self.indent + (self.board_size - 1) * self.size_sq,
+                        self.indent + self.size_sq * i)
+            qp.drawLine(self.indent + self.size_sq * i, self.indent, self.indent + self.size_sq * i,
+                        self.indent + (self.board_size - 1) * self.size_sq)
 
     def draw_stone(self, qp):
         """
@@ -177,9 +210,9 @@ class MainWindow(QMainWindow):
         :param y: coordinates by y
         :return: true or false depending on the ability to put a stone
         """
-        if x > 9 * self.size_sq:
+        if x > self.board_size * self.size_sq:
             return False
-        elif y > 9 * self.size_sq:
+        elif y > self.board_size * self.size_sq:
             return False
         elif x < self.indent:
             return False
@@ -218,6 +251,7 @@ class MainWindow(QMainWindow):
     def game(self):
         """The main method of the game"""
         stone_type = Board.our
+
         self.setEnabled(False)
         while True:
             if stone_type == Board.our:
@@ -236,7 +270,9 @@ class MainWindow(QMainWindow):
                 self.do_person_move()
                 stone_type = self.board.get_opposite_stone(stone_type)
             if self.count_pass >= 2:
-                self.open_dialog()
+                self.window_with_game_result()
+                self.setDisabled(True)
+                os.remove('log_board.txt')
                 break
             self.repaint()
 
@@ -248,6 +284,9 @@ class MainWindow(QMainWindow):
         self.board = move[0]
         if not move[1]:
             self.count_pass += 1
+            t = threading.Thread(target=self.pass_comp)
+            t.start()
+            t.join()
         else:
             self.count_pass = 0
             self.click_pass = False
@@ -257,6 +296,10 @@ class MainWindow(QMainWindow):
         """processes the player 's move"""
         self.setEnabled(True)
         while not self.person_point and not self.click_pass:
+            if self.board.count_stones_on_board() == 1:
+                self.button_previous_move.setEnabled(False)
+            else:
+                self.button_previous_move.setEnabled(True)
             continue
         if not self.click_pass:
             if self.board.check_move_correctness(self.person_point, Board.alien):
@@ -271,10 +314,7 @@ class MainWindow(QMainWindow):
         self.flag = True
         time.sleep(0.5)
 
+    def closeEvent(self, **kwargs):
+        sys.exit(0)
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    window.main()
-    sys.exit(app.exec_())
+

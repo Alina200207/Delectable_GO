@@ -1,5 +1,6 @@
 import random
 import Board
+from Point import OrdinaryPoint
 
 
 def get_free_points(board, stone_type):
@@ -11,7 +12,7 @@ def get_free_points(board, stone_type):
     free_points = []
     for i in range(1, board.size + 1):
         for j in range(1, board.size + 1):
-            p = (i, j)
+            p = OrdinaryPoint(i, j)
             if board.check_move_correctness(p, stone_type):
                 if board.is_eye_point(p, Board.Board.our) and board.is_real_eye(p):
                     continue
@@ -39,10 +40,11 @@ def make_comp_move(board: Board):
     :return: returns the board and the coordinates of the stone
     """
     groups = find_groups_and_count_dame(board)
-    groups = dict(sorted(groups.items(), key=lambda x: x[0]))
     if not groups:
         return play_random_move(board)
-    for group in groups.values():
+    sorted(groups.items(), key=lambda x: x[0])
+    groups = groups.values()
+    for group in groups:
         if board.is_eye_point(group[0], Board.Board.our) and board.is_real_eye(group[0]):
             continue
         point = find_dame(board, group[0])
@@ -65,7 +67,7 @@ def find_groups_and_count_dame(board):
     groups = {}
     for i in range(1, board.size + 1):
         for j in range(1, board.size + 1):
-            point = (i, j)
+            point = OrdinaryPoint(i, j)
             neighbors = find_group(board, point)
             if neighbors is None:
                 return play_random_move(board)
@@ -77,13 +79,14 @@ def find_groups_and_count_dame(board):
     return groups
 
 
-def find_dame(board, point: (int, int)) -> (int, int):
+
+def find_dame(board, point: OrdinaryPoint) -> OrdinaryPoint:
     """
     :param board: the board with current condition of the game
     :param point: the point at which the existence of a dame is determined
     :return: empty point
     """
-    neighbours = board.get_close_neighbors(point)
+    neighbours = point.get_close_neighbors()
     for neighbour in neighbours:
         if board.get_point_type(neighbour) == Board.Board.empty:
             return neighbour
@@ -102,7 +105,7 @@ def find_group(board, point):
         queue.append(point)
         while len(queue) > 0:
             current = queue.pop()
-            neighbours = board.get_close_neighbors(current)
+            neighbours = current.get_close_neighbors()
             visited.append(current)
             for neighbour in neighbours:
                 if (board.get_point_type(current) == board.get_point_type(neighbour) and
@@ -118,7 +121,7 @@ def count_dame(board, point):
     :return: the number of free points next to the stone
     """
     count = 0
-    neighbours = board.get_close_neighbors(point)
+    neighbours = point.get_close_neighbors()
     for neighbour in neighbours:
         if board.get_point_type(neighbour) == Board.Board.empty:
             count += 1
