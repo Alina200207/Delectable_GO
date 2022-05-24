@@ -1,2 +1,5 @@
 *.pyc
-.idea
+/.idea
+**/__pycache__
+log_board.txt
+main_window.spec

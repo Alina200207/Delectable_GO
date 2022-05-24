@@ -1,4 +1,7 @@
-def is_visited(visited: list[(int, int)], queue: list[(int, int)], point: (int, int)) -> bool:
+from Point import OrdinaryPoint
+
+
+def is_visited(visited: list[OrdinaryPoint], queue: list[OrdinaryPoint], point: OrdinaryPoint) -> bool:
     """
     :param visited: list of visited points
     :param queue: list of points in queue
@@ -6,10 +9,10 @@ def is_visited(visited: list[(int, int)], queue: list[(int, int)], point: (int, 
     :return: a boolean value that determines whether the point is visited or not
     """
     for elem in visited:
-        if point == elem:
+        if point.equals(elem):
             return True
     for elem_q in queue:
-        if point == elem_q:
+        if point.equals(elem_q):
             return True
     return False
 
@@ -20,8 +23,8 @@ class Board:
     alien = 3
     border = 4
 
-    def __init__(self):
-        self.size = 9
+    def __init__(self, board_size: int):
+        self.size = board_size
         self.ko_time = 0
         self.ko_point = None
         self.ko_stone_type = Board.empty
@@ -34,36 +37,37 @@ class Board:
             self.board[k][self.size + 1] = self.border
             self.board[self.size + 1][k] = self.border
 
-    def dame_exists(self, point: (int, int)) -> bool:
+    def dame_exists(self, point: OrdinaryPoint) -> bool:
         """
         :param point: the point at which the existence of a dame is determined
         :return: a boolean value that determines whether the point has a dame or not
         """
-        neighbours = self.get_close_neighbors(point)
+        neighbours = point.get_close_neighbors()
         for neighbour in neighbours:
             if self.get_point_type(neighbour) == Board.empty:
                 return True
         return False
 
-    def is_eye_point(self, point: (int, int), stone_type: int) -> bool:
+    def is_eye_point(self, point: OrdinaryPoint, stone_type: int) -> bool:
         """
         :param stone_type:
         :param point: the point to check
         :return: a boolean value that determines whether the point is eye or not
         """
-        neighbours = self.get_close_neighbors(point)
+        neighbours = point.get_close_neighbors()
         for neighbour in neighbours:
             if self.get_point_type(neighbour) == Board.empty or (self.get_point_type(neighbour) ==
                                                                  self.get_opposite_stone(stone_type)):
                 return False
         return True
 
-    def is_real_eye(self, point: (int, int)) -> bool:
+    def is_real_eye(self, point: OrdinaryPoint) -> bool:
         """
+        used only for computer move
         :param point: the point to check
         :return: a boolean value that determines whether the point is true eye or not
         """
-        diag_neighbours = self.get_diagonal_neighbors(point)
+        diag_neighbours = point.get_diagonal_neighbors()
         same_stones = 0
         another_stones = 0
         is_border = False
@@ -78,14 +82,14 @@ class Board:
             return True
         return False
 
-    def get_point_type(self, point: (int, int)) -> int:
+    def get_point_type(self, point: OrdinaryPoint) -> int:
         """
         :param point: point at which the stone type is required to determine
         :return: the type(can be 1(empty), 2(our), 3(alien), 4(border)) of point on the board
         """
-        return self.board[point[0]][point[1]]
+        return self.board[point.x][point.y]
 
-    def set_point(self, point: (int, int), point_type: int):
+    def set_point(self, point: OrdinaryPoint, point_type: int):
         """
         Set the point_type at the point position on the board.
 
@@ -93,10 +97,10 @@ class Board:
         :param point_type: stone type of point
 
         """
-        self.board[point[0]][point[1]] = point_type
+        self.board[point.x][point.y] = point_type
         if point_type == self.alien or point_type == self.our:
-            self.last_point = (point[0], point[1])
-            self.ko_time += 1  # ?
+            self.last_point = OrdinaryPoint(point.x, point.y)
+            self.ko_time += 1
 
     def get_opposite_stone(self, stone_type: int) -> int:
         """
@@ -108,7 +112,7 @@ class Board:
         else:
             return self.our
 
-    def try_move(self, point: (int, int), point_type: int):
+    def try_move(self, point: OrdinaryPoint, point_type: int):
         """
         Set the point_type at the point position on the board to determine if the move is correct.
 
@@ -125,7 +129,7 @@ class Board:
         self.set_point(self.try_point, Board.empty)
         self.try_point = None
 
-    def set_last_point(self, point: (int, int)):
+    def set_last_point(self, point: OrdinaryPoint):
         """
         Set the last move point.
 
@@ -133,9 +137,9 @@ class Board:
         """
         self.last_point = point
 
-    def set_ko_position(self, point: (int, int), point_type):
+    def set_ko_position(self, point: OrdinaryPoint, point_type):
         """
-        Set the ko position (position that can leading to the repeating of the move).
+        Set the ko position (position that can lead to the repeating of the move).
 
         :param point:
         :param point_type:
@@ -144,23 +148,24 @@ class Board:
         self.ko_point = point
         self.ko_time = 0
 
-    def is_ko_point(self, point: (int, int)) -> bool:
+    def is_ko_point(self, point: OrdinaryPoint, point_type: int) -> bool:
         """
+        :param point_type: type of the stone
         :param point: the point at which the presence of a ko position is determined
         :return: a boolean value that determines is the point makes ko position or not
         """
         if self.ko_time == 0 and self.ko_point:
-            if point == self.ko_point and self.get_point_type(self.ko_point) == self.get_point_type(point):
+            if point.equals(self.ko_point) and self.ko_stone_type == point_type:
                 return True
         return False
 
-    def get_last_point(self) -> (int, int):
+    def get_last_point(self) -> OrdinaryPoint:
         """
         :return: the point of last move
         """
         return self.last_point
 
-    def make_move(self, point: (int, int), point_type: int):
+    def make_move(self, point: OrdinaryPoint, point_type: int):
         """
         Makes move and removes dead stones.
 
@@ -170,7 +175,7 @@ class Board:
         self.set_point(point, point_type)
         self.remove_dead_stones(point)
 
-    def check(self, point: (int, int), point_type: int) -> bool:
+    def check_move_correctness(self, point: OrdinaryPoint, point_type: int) -> bool:
         """
         :param point: the point at which the correctness of the stone move is checked
         :param point_type: type of the stone
@@ -178,15 +183,19 @@ class Board:
         """
         if self.get_point_type(point) != Board.empty:
             return False
+        if self.is_ko_point(point, point_type):
+            return False
         if self.dame_exists(point):
             return True
-        if self.is_ko_point(point):
-            return False
-        neighbours = self.get_close_neighbors(point)
+        neighbours = point.get_close_neighbors()
         self.try_move(point, point_type)
         if self.dead_points(point):
             for neighbour in neighbours:
                 if self.get_opposite_stone(point_type) != self.get_point_type(neighbour):
+                    if self.dead_points(neighbour):
+                        self.undo_move()
+                        return False
+                else:
                     if self.dead_points(neighbour):
                         self.undo_move()
                         return True
@@ -196,11 +205,12 @@ class Board:
         self.undo_move()
         return False
 
-    def dead_points(self, point: (int, int)) -> list:
+    def dead_points(self, point: OrdinaryPoint) -> list:
         """
+        Find the points that become dead.
 
-        :param point:
-        :return:
+        :param point: point from which start looking for potentially dead points
+        :return: list of dead points
         """
         queue = []
         visited = []
@@ -210,7 +220,7 @@ class Board:
                 current = queue.pop()
                 if self.dame_exists(current):
                     return []
-                neighbours = self.get_close_neighbors(current)
+                neighbours = current.get_close_neighbors()
                 visited.append(current)
                 for neighbour in neighbours:
                     if (self.get_point_type(current) == self.get_point_type(neighbour) and
@@ -218,29 +228,27 @@ class Board:
                         queue.append(neighbour)
         return visited
 
-    def remove_dead_stones(self, last: (int, int)) -> bool:
+    def remove_dead_stones(self, point: OrdinaryPoint) -> bool:
         """
+        Remove dead stones and set ko position if it exists.
 
-        :param last:
-        :return:
+        :param point: point from which the looking for dead points starts
         """
-        stone_type = self.get_opposite_stone(self.get_point_type(last))
-        last_neighbours = self.get_close_neighbors(last)
-        all_deleted = 0
-        is_eye = self.is_eye_point(last, self.get_point_type(last))
+        point_type = self.get_point_type(point)
+        stone_opposite_type = self.get_opposite_stone(point_type)
+        last_neighbours = point.get_close_neighbors()
+        all_deleted_count = 0
+        is_eye = self.is_eye_point(point, stone_opposite_type)
         for neighbour in last_neighbours:
-            if self.get_point_type(neighbour) == stone_type:
-                deleted = self.delete_group_if_it_is_dead(neighbour)
-                all_deleted += deleted
-                if deleted == 1:
-                    last = neighbour
-        if all_deleted == 1 and last and is_eye:
-            self.set_ko_position(last, stone_type)
-        # if all_deleted > 0:
-        # return True
-        # return False
+            if self.get_point_type(neighbour) == stone_opposite_type:
+                deleted_count = self.delete_group_if_it_is_dead(neighbour)
+                all_deleted_count += deleted_count
+                if deleted_count == 1:
+                    point = neighbour
+        if all_deleted_count == 1 and point and is_eye:
+            self.set_ko_position(point, stone_opposite_type)
 
-    def delete_group_if_it_is_dead(self, point: (int, int)) -> int:
+    def delete_group_if_it_is_dead(self, point: OrdinaryPoint) -> int:
         """
         Deletes group of stones and returns size of group
 
@@ -252,26 +260,51 @@ class Board:
             self.set_point(point_from_group, Board.empty)
         return len(group)
 
-    def get_close_neighbors(self, point: (int, int)) -> list[(int, int)]:
-        """
-        :param point: the point
-        :return: list of direct neighbors of the point
-        """
-        return [
-            (point[0] - 1, point[1]), (point[0], point[1] - 1), (point[0] + 1, point[1]), (point[0], point[1] + 1)
-        ]
+    def count_stones_on_board(self):
+        count = 0
+        for i in range(1, self.size + 1):
+            for j in range(1, self.size + 1):
+                if self.get_point_type(OrdinaryPoint(i, j)) != self.empty:
+                    count += 1
+        return count
 
-    def get_diagonal_neighbors(self, point: (int, int)) -> list[(int, int)]:
+    def count_points(self) -> (int, int):
         """
-        :param point: the point
-        :return: list of diagonal neighbors of the point
+        Computer and player scoring
+        :return: returns a sheet with computer and player points
         """
-        return [(point[0] - 1, point[1] - 1), (point[0] + 1, point[1] - 1), (point[0] + 1, point[1] + 1),
-                (point[0] - 1, point[1] + 1)]
-
-    def get_all_neighbors(self, point: (int, int)) -> list[(int, int)]:
+        comp_score = 0
+        person_score = 0
+        for i in range(1, self.size + 1):
+            for j in range(1, self.size + 1):
+                point = OrdinaryPoint(i, j)
+                if self.get_point_type(point) == Board.empty:
+                    survivors = point.get_close_neighbors()
+                    is_comp_point, is_person_point = self.check_point_type(survivors)
+                    if is_comp_point:
+                        comp_score += 1
+                    if is_person_point:
+                        person_score += 1
+                else:
+                    if self.get_point_type(point) == Board.our:
+                        comp_score += 1
+                    if self.get_point_type(point) == Board.alien:
+                        person_score += 1
+        return comp_score, person_score
+# о бновлять текущий результат в базу данных, имя, оличество сыгранных игр, кол-во выигранных, суммарное количество очков
+    def check_point_type(self, survivors: list):
         """
-        :param point: the point
-        :return: list of all neighbors of the point
+        :param survivors: survivors points
+        :return: the boolean values that determines if the points are computer's or person's
         """
-        return self.get_close_neighbors(point).extend(self.get_diagonal_neighbors(point))
+        is_comp_point = True
+        is_person_point = True
+        for p in survivors:
+            point_type = self.get_point_type(p)
+            if point_type != Board.our and point_type != Board.border:
+                is_comp_point = False
+                break
+            if point_type != Board.alien and point_type != Board.border:
+                is_person_point = False
+                break
+        return is_comp_point, is_person_point
