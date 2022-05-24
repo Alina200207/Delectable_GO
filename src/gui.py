@@ -359,7 +359,7 @@ class MainWindow(QMainWindow):
         self.person_point = None
         self.setEnabled(False)
         self.flag = True
-        time.sleep(1.5)
+        time.sleep(0.35)
 
     def closeEvent(self, event):
         """
