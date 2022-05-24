@@ -88,6 +88,7 @@ class MainWindow(QMainWindow):
         self.dlg = QMessageBox(self)
 
     def replay(self):
+        self.count_pass = 0
         self.board = Board(self.board_size)
         self.stone_type = Board.our
         self.person_point = None
@@ -189,9 +190,11 @@ class MainWindow(QMainWindow):
         """
         dlg = QDialog(self)
         dlg.setWindowTitle("Пасс компьютера")
-        dlg.setGeometry(int(self.height_desk * 0.95), int(self.width_desk * 0.6),
+        dlg.setGeometry(
+            int(self.height_desk * 0.95), int(self.width_desk * 0.6),
                         int(self.width_desk * 0.4),
-                        int(self.height_desk * 0.05))
+                        int(self.height_desk * 0.05)
+        )
 
         dlg.exec()
 
@@ -203,8 +206,12 @@ class MainWindow(QMainWindow):
         pen = QPen(Qt.black, 3, Qt.SolidLine)
         qp.setPen(pen)
         for i in range(self.board_size):
-            qp.drawLine(self.indent, self.indent + self.size_sq * i, self.indent + (self.board_size - 1) * self.size_sq,
-                        self.indent + self.size_sq * i)
+            qp.drawLine(
+                self.indent,
+                self.indent + self.size_sq * i,
+                self.indent + (self.board_size - 1) * self.size_sq,
+                self.indent + self.size_sq * i
+            )
             qp.drawLine(self.indent + self.size_sq * i, self.indent, self.indent + self.size_sq * i,
                         self.indent + (self.board_size - 1) * self.size_sq)
 
@@ -352,7 +359,7 @@ class MainWindow(QMainWindow):
         self.person_point = None
         self.setEnabled(False)
         self.flag = True
-        time.sleep(0.5)
+        time.sleep(1.5)
 
     def closeEvent(self, event):
         """
@@ -371,4 +378,4 @@ class MainWindow(QMainWindow):
         print("save")
         self.last_games_info.save_last_games()
         os.remove('log_board.txt')
-        sys.exit()
+        self.close()
