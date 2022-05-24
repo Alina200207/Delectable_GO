@@ -5,14 +5,18 @@ class Database:
     """
     Allows working with database
     """
+
     def __init__(self):
         self.base = sqlite3.connect('info_about_players.db')
         self.cur = self.base.cursor()
-        self.base.execute('CREATE TABLE IF NOT EXISTS players(player_name PRIMARY KEY, game_count, win_game_count, '
-                     'general_points_count)')
+        self.base.execute('CREATE TABLE IF NOT EXISTS players('
+                          'player_name PRIMARY KEY, '
+                          'game_count, win_game_count, '
+                          'general_points_count'
+                          ')')
         self.base.commit()
 
-    def update_info_about_player(self, player_name, win, person_score):
+    def update_info_about_player(self, player_name: str, win: int, person_score: int):
         """
         Updates info about player in database.
 
@@ -25,9 +29,13 @@ class Database:
             self.cur.execute('INSERT INTO players VALUES(?, ?, ?, ?)', (player_name, 1, win, person_score,))
         else:
 
-            self.cur.execute('UPDATE players SET game_count=game_count + ?, win_game_count=win_game_count + ?, '
-                        'general_points_count=general_points_count + ? WHERE player_name=?',
-                        (1, win, person_score, player_name,))
+            self.cur.execute(
+                'UPDATE players SET game_count=game_count + ?, '
+                'win_game_count=win_game_count + ?, '
+                'general_points_count=general_points_count + ? '
+                'WHERE player_name=?',
+                (1, win, person_score, player_name,)
+            )
         self.base.commit()
 
     def close_database(self):

@@ -35,7 +35,6 @@ def rewrite_file(last_condition: str):
 
 class MainWindow(QMainWindow):
     def __init__(self, size_board, name, parent=None):
-        print("sdfgvbhjn")
         super().__init__(parent, Qt.Window)
         self.board_size = size_board
         self.setWindowTitle("Го")
@@ -139,7 +138,6 @@ class MainWindow(QMainWindow):
         with open('log_board.txt', 'r') as file:
                 file.readline()
                 data = file.readline()
-                print(data)
         if self.board.count_stones_on_board() == 1 or not data:
                 self.button_previous_move.setEnabled(False)
         else:
@@ -368,14 +366,12 @@ class MainWindow(QMainWindow):
         :param **kwargs:
         """
         move_of = "c"
-        print("gbhbgjjhgj")
         if self.is_person_move:
             move_of = "p"
         if not self.game_end:
             self.last_games_info.set_last_game_of_player(self.player_name, self.board_size, move_of, self.board.board)
         else:
             self.last_games_info.delete_last_game_of_player(self.player_name, self.board_size)
-        print("save")
         self.last_games_info.save_last_games()
         os.remove('log_board.txt')
         self.close()

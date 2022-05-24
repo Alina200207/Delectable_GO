@@ -3,7 +3,7 @@ import Board
 from Point import OrdinaryPoint
 
 
-def get_free_points(board, stone_type):
+def get_free_points(board: Board, stone_type: int):
     """
     :param board: the board with current condition of the game
     :param stone_type: type of stone
@@ -58,7 +58,7 @@ def make_comp_move(board: Board):
     return play_random_move(board)
 
 
-def find_groups_and_count_dame(board):
+def find_groups_and_count_dame(board: Board):
     """
     :param board: the board with current condition of the game
     :return: returns a dictionary with the key - the number of free points and the value - the coordinates of the stones
@@ -71,7 +71,6 @@ def find_groups_and_count_dame(board):
             neighbors = find_group(board, point)
             if neighbors is None:
                 continue
-                #return play_random_move(board)
             if board.get_point_type(point) == Board.Board.alien:
                 for neighbor in neighbors:
                     count = count_dame(board, neighbor)
@@ -80,8 +79,7 @@ def find_groups_and_count_dame(board):
     return groups
 
 
-
-def find_dame(board, point: OrdinaryPoint) -> OrdinaryPoint:
+def find_dame(board: Board, point: OrdinaryPoint) -> OrdinaryPoint:
     """
     :param board: the board with current condition of the game
     :param point: the point at which the existence of a dame is determined
@@ -94,7 +92,7 @@ def find_dame(board, point: OrdinaryPoint) -> OrdinaryPoint:
     return None
 
 
-def find_group(board, point):
+def find_group(board: Board, point: OrdinaryPoint) -> list:
     """
     :param board: the board with current condition of the game
     :param point: the point from which the search for the group begins
@@ -115,7 +113,7 @@ def find_group(board, point):
     return visited
 
 
-def count_dame(board, point):
+def count_dame(board: Board, point: OrdinaryPoint):
     """
     :param board: the board with current condition of the game
     :param point: the point at which the existence of a dame is determined

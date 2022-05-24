@@ -18,6 +18,9 @@ def is_visited(visited: list[OrdinaryPoint], queue: list[OrdinaryPoint], point: 
 
 
 class Board:
+    """
+    Class of the game board.
+    """
     empty = 1
     our = 2
     alien = 3
@@ -228,7 +231,7 @@ class Board:
                         queue.append(neighbour)
         return visited
 
-    def remove_dead_stones(self, point: OrdinaryPoint) -> bool:
+    def remove_dead_stones(self, point: OrdinaryPoint):
         """
         Remove dead stones and set ko position if it exists.
 
@@ -261,6 +264,10 @@ class Board:
         return len(group)
 
     def count_stones_on_board(self):
+        """
+
+        :return: number of stones on the board
+        """
         count = 0
         for i in range(1, self.size + 1):
             for j in range(1, self.size + 1):
@@ -291,7 +298,7 @@ class Board:
                     if self.get_point_type(point) == Board.alien:
                         person_score += 1
         return comp_score, person_score
-# о бновлять текущий результат в базу данных, имя, оличество сыгранных игр, кол-во выигранных, суммарное количество очков
+
     def check_point_type(self, survivors: list):
         """
         :param survivors: survivors points
