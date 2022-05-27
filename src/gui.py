@@ -180,7 +180,7 @@ class MainWindow(QMainWindow):
         database = Database()
         database.update_info_about_player(self.player_name, 1 if comp_score < person_score else 0, person_score)
         database.close_database()
-        self.closeEvent("event")
+        # self.closeEvent("event")
 
     def pass_comp(self):
         """
@@ -374,4 +374,4 @@ class MainWindow(QMainWindow):
             self.last_games_info.delete_last_game_of_player(self.player_name, self.board_size)
         self.last_games_info.save_last_games()
         os.remove('log_board.txt')
-        self.close()
+        sys.exit(QApplication([]))

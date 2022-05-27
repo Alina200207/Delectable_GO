@@ -69,5 +69,4 @@ class LastGamesStates:
         Save information about last games.
         """
         with open("lastGames.json", "w") as file:
-            print(self.info_about_players_last_games)
             json.dump(self.info_about_players_last_games, file)
