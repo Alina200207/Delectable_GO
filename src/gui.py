@@ -54,15 +54,24 @@ class MainWindow(QMainWindow):
         self.count_pass = 0
         self.button_pass.clicked.connect(self.add_count_pass)
         self.button_previous_move.clicked.connect(self.set_previous_move)
-        self.button_pass.setGeometry(int(self.width_desk * 0.6), int(self.height_desk * 0.9),
-                                     int(self.width_desk * 0.2),
-                                     int(self.height_desk * 0.05))
-        self.button_previous_move.setGeometry(int(self.width_desk * 0.2), int(self.height_desk * 0.9),
-                                              int(self.width_desk * 0.2),
-                                              int(self.height_desk * 0.05))
-        self.button_replay.setGeometry(int(self.width_desk * 0.4), int(self.height_desk * 0.9),
-                                       int(self.width_desk * 0.2),
-                                       int(self.height_desk * 0.05))
+        self.button_pass.setGeometry(
+            int(self.width_desk * 0.6),
+            int(self.height_desk * 0.9),
+            int(self.width_desk * 0.2),
+            int(self.height_desk * 0.05)
+        )
+        self.button_previous_move.setGeometry(
+            int(self.width_desk * 0.2),
+            int(self.height_desk * 0.9),
+            int(self.width_desk * 0.2),
+            int(self.height_desk * 0.05)
+        )
+        self.button_replay.setGeometry(
+            int(self.width_desk * 0.4),
+            int(self.height_desk * 0.9),
+            int(self.width_desk * 0.2),
+            int(self.height_desk * 0.05)
+        )
         self.button_replay.clicked.connect(self.replay)
         self.indent = int(self.width_desk * 0.1)
         self.size_sq = (self.width_desk - self.indent * 2) // (self.board_size - 1)
@@ -165,8 +174,10 @@ class MainWindow(QMainWindow):
 
     def mousePressEvent(self, a0):
         """reacts to right-click and records coordinates"""
-        self.person_point = OrdinaryPoint(round((a0.x() - self.indent) / self.size_sq) + 1,
-                                          round((a0.y() - self.indent) / self.size_sq) + 1)
+        self.person_point = OrdinaryPoint(
+            round((a0.x() - self.indent) / self.size_sq) + 1,
+            round((a0.y() - self.indent) / self.size_sq) + 1
+        )
 
     def window_with_game_result(self):
         """creates a dialog box"""
@@ -178,23 +189,12 @@ class MainWindow(QMainWindow):
         self.dlg.setText("Очки игрока: " + str(person_score) + '\nОчки компьютера: ' + str(comp_score))
         self.dlg.exec()
         database = Database()
-        database.update_info_about_player(self.player_name, 1 if comp_score < person_score else 0, person_score)
-        database.close_database()
-        # self.closeEvent("event")
-
-    def pass_comp(self):
-        """
-        displays a message that the computer has passed
-        """
-        dlg = QDialog(self)
-        dlg.setWindowTitle("Пасс компьютера")
-        dlg.setGeometry(
-            int(self.height_desk * 0.95), int(self.width_desk * 0.6),
-                        int(self.width_desk * 0.4),
-                        int(self.height_desk * 0.05)
+        database.update_info_about_player(
+            self.player_name,
+            1 if comp_score < person_score else 0,
+            person_score
         )
-
-        dlg.exec()
+        database.close_database()
 
     def draw_board(self, qp):
         """
@@ -210,8 +210,12 @@ class MainWindow(QMainWindow):
                 self.indent + (self.board_size - 1) * self.size_sq,
                 self.indent + self.size_sq * i
             )
-            qp.drawLine(self.indent + self.size_sq * i, self.indent, self.indent + self.size_sq * i,
-                        self.indent + (self.board_size - 1) * self.size_sq)
+            qp.drawLine(
+                self.indent + self.size_sq * i,
+                self.indent,
+                self.indent + self.size_sq * i,
+                self.indent + (self.board_size - 1) * self.size_sq
+            )
 
     def draw_stone(self, qp):
         """
@@ -231,11 +235,17 @@ class MainWindow(QMainWindow):
         """
         if self.check_coord(self.size_sq * (i - 1) + self.indent, self.size_sq * (j - 1) + self.indent):
             if self.board.board[i][j] == Board.alien:
-                self.draw_white_stone(qp, self.size_sq * (i - 1) + self.indent,
-                                      self.size_sq * (j - 1) + self.indent)
+                self.draw_white_stone(
+                    qp,
+                    self.size_sq * (i - 1) + self.indent,
+                    self.size_sq * (j - 1) + self.indent
+                )
             if self.board.board[i][j] == Board.our:
-                self.draw_black_stone(qp, self.size_sq * (i - 1) + self.indent,
-                                      self.size_sq * (j - 1) + self.indent)
+                self.draw_black_stone(
+                    qp,
+                    self.size_sq * (i - 1) + self.indent,
+                    self.size_sq * (j - 1) + self.indent
+                )
 
     def round_cord(self, point) -> int:
         """
@@ -271,8 +281,12 @@ class MainWindow(QMainWindow):
 
         stone = QBrush(Qt.white, Qt.SolidPattern)
         qp.setBrush(stone)
-        qp.drawEllipse(x - int(self.size_sq * 0.25), y - int(self.size_sq * 0.25), int(self.size_sq * 0.5),
-                       int(self.size_sq * 0.5))
+        qp.drawEllipse(
+            x - int(self.size_sq * 0.25),
+            y - int(self.size_sq * 0.25),
+            int(self.size_sq * 0.5),
+            int(self.size_sq * 0.5)
+        )
 
     def draw_black_stone(self, qp, x, y):
         """
@@ -284,8 +298,12 @@ class MainWindow(QMainWindow):
         """
         stone = QBrush(Qt.black, Qt.SolidPattern)
         qp.setBrush(stone)
-        qp.drawEllipse(x - int(self.size_sq * 0.25), y - int(self.size_sq * 0.25), int(self.size_sq * 0.5),
-                       int(self.size_sq * 0.5))
+        qp.drawEllipse(
+            x - int(self.size_sq * 0.25),
+            y - int(self.size_sq * 0.25),
+            int(self.size_sq * 0.5),
+            int(self.size_sq * 0.5)
+        )
 
     def main(self):
         """starts a stream with the game"""
@@ -302,14 +320,7 @@ class MainWindow(QMainWindow):
             if stone_type == Board.our:
                 self.button_previous_move.setEnabled(False)
                 if self.flag:
-                    self.is_person_move = False
-                    self.do_comp_move()
-                    string_board = ''
-                    with open('log_board.txt', 'a') as file:
-                        file.write('board state: ')
-                        for row in self.board.board:
-                            string_board = string_board + str(row) + ';'
-                        file.write(string_board + '\n')
+                    self.comp_action()
                 else:
                     continue
                 stone_type = self.board.get_opposite_stone(stone_type)
@@ -326,6 +337,19 @@ class MainWindow(QMainWindow):
                 break
             self.repaint()
 
+    def comp_action(self):
+        """
+        makes a computer move and saves it
+        """
+        self.is_person_move = False
+        self.do_comp_move()
+        string_board = ''
+        with open('log_board.txt', 'a') as file:
+            file.write('board state: ')
+            for row in self.board.board:
+                string_board = string_board + str(row) + ';'
+            file.write(string_board + '\n')
+
     def do_comp_move(self):
         """creates the computer's progress"""
         self.setUpdatesEnabled(False)
@@ -334,7 +358,6 @@ class MainWindow(QMainWindow):
         self.board = move[0]
         if not move[1]:
             self.count_pass += 1
-            # self.pass_comp()
         else:
             self.count_pass = 0
             self.click_pass = False
@@ -362,16 +385,23 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         """
         closes the window
-
         :param **kwargs:
         """
         move_of = "c"
         if self.is_person_move:
             move_of = "p"
         if not self.game_end:
-            self.last_games_info.set_last_game_of_player(self.player_name, self.board_size, move_of, self.board.board)
+            self.last_games_info.set_last_game_of_player(
+                self.player_name,
+                self.board_size,
+                move_of,
+                self.board.board
+            )
         else:
-            self.last_games_info.delete_last_game_of_player(self.player_name, self.board_size)
+            self.last_games_info.delete_last_game_of_player(
+                self.player_name,
+                self.board_size
+            )
         self.last_games_info.save_last_games()
         os.remove('log_board.txt')
         sys.exit(QApplication([]))
